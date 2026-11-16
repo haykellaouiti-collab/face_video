@@ -19,12 +19,14 @@
     body.dark header { background: rgba(14,20,31,0.9); border-color: #1e293b; }
     body.dark .nav-bar { background: #090d15; border-color: #1e293b; }
     body.dark .sub-box { background: #121824; border-color: #1e293b; }
+    body.dark .seg-box { background: #121824; border-color: #1e293b; }
     body:not(.dark) { background: #f8fafc; color: #1e293b; }
     body:not(.dark) .card { background: rgba(255,255,255,0.9); border-color: rgba(203,213,225,0.6); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     body:not(.dark) .inp { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
     body:not(.dark) header { background: rgba(255,255,255,0.9); border-color: #e2e8f0; }
     body:not(.dark) .nav-bar { background: #f1f5f9; border-color: #cbd5e1; }
     body:not(.dark) .sub-box { background: #f1f5f9; border-color: #cbd5e1; }
+    body:not(.dark) .seg-box { background: #f8fafc; border-color: #cbd5e1; }
     .mono { font-family: 'JetBrains Mono', monospace; }
     .card { backdrop-filter: blur(10px); border-radius: 1rem; padding: 1.25rem; border: 1px solid; }
     .inp { width: 100%; border-radius: .65rem; padding: .55rem .75rem; font-size: .82rem; transition: all .15s; border: 1px solid; }
@@ -36,13 +38,15 @@
     .b-soft { background: #1e293b; color: #cbd5e1; border: 1px solid rgba(148,163,184,.2); } body:not(.dark) .b-soft { background: #e2e8f0; color: #334155; border-color: #cbd5e1; } .b-soft:hover:not(:disabled) { filter: brightness(1.1); }
     .b-ok { background: #059669; color: #fff; } .b-ok:hover:not(:disabled) { background: #047857; }
     .b-amb { background: linear-gradient(135deg,#d97706,#b45309); color: #fff; } .b-amb:hover:not(:disabled) { filter: brightness(1.15); }
+    .b-danger { background: rgba(220,38,38,0.15); color: #f87171; border: 1px solid rgba(220,38,38,0.3); } .b-danger:hover:not(:disabled) { background: rgba(220,38,38,0.25); }
     .tab { padding: .55rem 1rem; border-radius: .6rem; font-size: .8rem; font-weight: 600; color: #7991b1; transition: all .15s; display: flex; gap: .5rem; align-items: center; cursor: pointer; }
     .tab.on { background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,.3); } body:not(.dark) .tab.on { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
     .hidden-s { display: none !important; }
     #toast { position: fixed; right: 1rem; bottom: 1rem; z-index: 100; display: flex; flex-direction: column; gap: .5rem; }
-    .t { padding: .65rem 1rem; border-radius: .7rem; font-size: .8rem; max-width: 26rem; box-shadow: 0 8px 24px rgba(0,0,0,.5); color: #fff; background: #0284c7; }
+    .t { padding: .65rem 1rem; border-radius: .7rem; font-size: .8rem; max-width: 26rem; box-shadow: 0 8px 24px rgba(0,0,0,.5); color: #fff; background: #0284c7; animation: slideIn .2s ease-out; }
     .t.err { background: #dc2626; }
     .t.ok { background: #059669; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     input[type=range] { accent-color: #38bdf8; }
     .badge { padding: .25rem .65rem; border-radius: 9999px; font-size: .7rem; font-weight: 700; background: #1e293b; color: #94a3b8; border: 1px solid rgba(148,163,184,.25); } body:not(.dark) .badge { background: #e2e8f0; color: #475569; }
     .badge.premium { background: linear-gradient(135deg,#0284c7,#2563eb); color: #fff; border-color: #38bdf8; }
@@ -55,7 +59,7 @@
 <header class="border-b sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-4 min-h-16 py-2 flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-300 via-slate-500 to-slate-700 flex items-center justify-center text-slate-950 text-lg"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-700 flex items-center justify-center text-white text-lg shadow-lg shadow-sky-500/20"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
       <div>
         <h1 class="text-base font-bold leading-tight">FaceVideo</h1>
         <p class="text-[11px] opacity-75">Studio IA · Pipeline Complet</p>
@@ -69,6 +73,7 @@
     </nav>
 
     <div class="flex items-center gap-2">
+      <button class="btn b-soft !py-1.5 !px-2.5 !text-xs" onclick="openProjectsModal()" title="Mes Projets Sauvegardés"><i class="fa-solid fa-folder-open text-sky-400"></i> <span class="hidden sm:inline">Projets</span></button>
       <button class="btn b-soft !py-1.5 !px-2.5 !text-xs" onclick="toggleTheme()" title="Basculer Mode Jour / Nuit"><i id="themeIcon" class="fa-solid fa-sun text-amber-400"></i></button>
       <span id="authStatus" class="badge">Gratuit</span>
       <button id="btnAuth" class="btn b-soft !py-1.5 !px-3 !text-xs" onclick="openLogin()"><i class="fa-solid fa-user"></i> Connexion</button>
@@ -81,41 +86,81 @@
   <!-- ÉTAPE 1 : SCRIPT & VOIX TTS -->
   <section id="s1" class="grid grid-cols-1 lg:grid-cols-12 gap-5">
     <div class="lg:col-span-5 card flex flex-col gap-4 border">
-      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-sliders text-sky-400"></i> Générateur de script &amp; narration</h2>
-      <div><label class="lbl">Sujet / Consignes ASMR</label><textarea id="topic" rows="3" class="inp" placeholder="Ex : pluie sur une vitre, forge, usinage CNC haute précision..."></textarea></div>
+      <div class="flex items-center justify-between border-b pb-2">
+        <h2 class="text-sm font-semibold"><i class="fa-solid fa-sliders text-sky-400"></i> Générateur de script &amp; narration</h2>
+        <span class="text-[11px] mono text-slate-400" id="estDurationBadge">~0s estimées</span>
+      </div>
+
+      <div>
+        <label class="lbl">Préréglages rapides (Thèmes)</label>
+        <select id="presetSelect" class="inp" onchange="applyPreset()">
+          <option value="">-- Choisir un modèle (optionnel) --</option>
+          <option value="cnc">Usinage CNC &amp; Métal de précision (ASMR)</option>
+          <option value="forge">Forge traditionnelle &amp; Acier incandescent (ASMR)</option>
+          <option value="rain">Pluie nocturne sur verrière &amp; Détente</option>
+          <option value="cyber">Exploration spatiale &amp; Synthwave</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="lbl">Sujet / Consignes narratives</label>
+        <textarea id="topic" rows="3" class="inp" placeholder="Ex : pluie sur une vitre, forge, usinage CNC haute précision..."></textarea>
+      </div>
+
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="lbl">Langue</label><select id="lang" class="inp" onchange="loadVoices()"><option value="fr">Français</option><option value="en">Anglais</option></select></div>
-        <div><label class="lbl">Durée cible</label><select id="dur" class="inp"><option value="10" selected>10 secondes</option><option value="20">20 secondes</option><option value="30">30 secondes</option><option value="60">1 minute</option></select></div>
+        <div>
+          <label class="lbl">Langue</label>
+          <select id="lang" class="inp" onchange="loadVoices()">
+            <option value="fr">Français</option>
+            <option value="en">Anglais</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Durée cible</label>
+          <select id="dur" class="inp">
+            <option value="10" selected>10 secondes (2 clips)</option>
+            <option value="20">20 secondes (4 clips)</option>
+            <option value="30">30 secondes (6 clips)</option>
+            <option value="60">1 minute (12 clips)</option>
+          </select>
+        </div>
       </div>
 
       <div class="sub-box p-3 rounded-xl border space-y-3">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-sky-400"><i class="fa-solid fa-microphone-lines"></i> Voix off (Preview)</span>
+          <span class="text-xs font-semibold text-sky-400"><i class="fa-solid fa-microphone-lines"></i> Voix off (Preview navigateur)</span>
           <label class="flex items-center gap-2 text-xs cursor-pointer">
             <input type="checkbox" id="ttsEnabled" checked class="accent-sky-400"> Activer
           </label>
         </div>
         <div>
-          <label class="lbl">Sélection de la voix (TTS du navigateur)</label>
+          <label class="lbl">Sélection de la voix (TTS)</label>
           <select id="voiceSelect" class="inp"></select>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="lbl">Débit : <span id="rateVal">0.85</span>x</label><input id="ttsRate" type="range" min="0.5" max="1.3" step="0.05" value="0.85" class="w-full" oninput="$('rateVal').textContent=this.value"></div>
           <div><label class="lbl">Hauteur : <span id="pitchVal">0.90</span></label><input id="ttsPitch" type="range" min="0.5" max="1.5" step="0.05" value="0.90" class="w-full" oninput="$('pitchVal').textContent=this.value"></div>
         </div>
-        <button class="btn b-soft w-full !py-1.5 !text-xs" onclick="testVoice()"><i class="fa-solid fa-volume-high text-sky-400"></i> Tester la voix (Preview)</button>
+        <div class="flex gap-2">
+          <button class="btn b-soft flex-1 !py-1.5 !text-xs" onclick="testVoice()"><i class="fa-solid fa-volume-high text-sky-400"></i> Tester la voix</button>
+          <button class="btn b-soft !py-1.5 !px-3 !text-xs" onclick="stopVoice()" title="Arrêter la lecture"><i class="fa-solid fa-stop text-red-400"></i></button>
+        </div>
       </div>
 
       <button class="btn b-main" onclick="generateScript()"><i class="fa-solid fa-wand-magic-sparkles"></i> Générer le script</button>
     </div>
 
     <div class="lg:col-span-7 card flex flex-col gap-3 border">
-      <div class="flex items-center justify-between border-b pb-2">
-        <h2 class="text-sm font-semibold"><i class="fa-solid fa-list-check text-sky-400"></i> Segments du script (éditables)</h2>
-        <button class="btn b-soft !py-1 !px-2.5 !text-xs" onclick="readFullScript()"><i class="fa-solid fa-play text-emerald-400"></i> Écouter tout</button>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+        <h2 class="text-sm font-semibold"><i class="fa-solid fa-list-check text-sky-400"></i> Segments du script (<span id="segCount">0</span>)</h2>
+        <div class="flex gap-1.5">
+          <button class="btn b-soft !py-1 !px-2.5 !text-xs" onclick="addSegment()"><i class="fa-solid fa-plus text-sky-400"></i> Ajouter</button>
+          <button class="btn b-soft !py-1 !px-2.5 !text-xs" onclick="readFullScript()"><i class="fa-solid fa-play text-emerald-400"></i> Écouter tout</button>
+          <button class="btn b-soft !py-1 !px-2.5 !text-xs" onclick="saveCurrentProject()" title="Sauvegarder ce projet localement"><i class="fa-solid fa-floppy-disk text-amber-400"></i></button>
+        </div>
       </div>
-      <div id="segs" class="flex-1 max-h-[460px] overflow-y-auto space-y-2 pr-1">
-        <div class="text-xs text-slate-400 text-center py-10">Générez un script pour afficher les segments.</div>
+      <div id="segs" class="flex-1 max-h-[460px] overflow-y-auto space-y-2.5 pr-1">
+        <div class="text-xs text-slate-400 text-center py-12">Générez un script ou ajoutez manuellement des segments pour commencer.</div>
       </div>
       <button class="btn b-soft w-full" onclick="go(2)">Passer au rendu vidéo <i class="fa-solid fa-arrow-right"></i></button>
     </div>
@@ -126,24 +171,34 @@
     <div class="lg:col-span-8 card flex flex-col gap-3 border">
       <div class="flex items-center justify-between border-b pb-2">
         <h2 class="text-sm font-semibold"><i class="fa-solid fa-display text-amber-400"></i> Pipeline de génération IA</h2>
-        <span id="planHint" class="text-[11px] opacity-75">Mode Gratuit : filigrane inclus</span>
+        <span id="planHint" class="text-[11px] opacity-75">Mode Gratuit : 480p max</span>
       </div>
-      <div class="relative bg-black rounded-xl flex items-center justify-center min-h-[300px] overflow-hidden p-2 border border-slate-800">
-        <canvas id="cv" class="max-w-full max-h-[430px] rounded"></canvas>
+
+      <!-- Moniteur visuel / Storyboard dynamique -->
+      <div class="relative bg-slate-950 rounded-xl flex flex-col items-center justify-center min-h-[300px] overflow-hidden p-4 border border-slate-800">
+        <canvas id="cv" width="640" height="360" class="max-w-full max-h-[360px] rounded shadow-lg"></canvas>
       </div>
-      <div class="sub-box p-3 rounded-xl border space-y-1.5">
-        <div class="flex justify-between text-xs mono"><span id="rStatus">Prêt pour le rendu.</span><span id="rPct" class="text-amber-400 font-bold">0%</span></div>
-        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div id="rBar" class="h-full bg-amber-500 transition-all" style="width:0%"></div></div>
-        <div id="pipelineSteps" class="text-[10px] text-slate-400 mt-2 space-y-1 hidden-s">
-            <div id="step1" class="flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin text-sky-400"></i> 1. Génération du script</div>
-            <div id="step2" class="flex items-center gap-2 opacity-50"><i class="fa-regular fa-circle text-slate-500"></i> 2. Génération de la voix off</div>
-            <div id="step3" class="flex items-center gap-2 opacity-50"><i class="fa-regular fa-circle text-slate-500"></i> 3. Génération des clips vidéo</div>
-            <div id="step4" class="flex items-center gap-2 opacity-50"><i class="fa-regular fa-circle text-slate-500"></i> 4. Assemblage final</div>
+
+      <div class="sub-box p-3 rounded-xl border space-y-2">
+        <div class="flex justify-between text-xs mono">
+          <span id="rStatus" class="truncate pr-2">Prêt pour le rendu.</span>
+          <span id="rPct" class="text-amber-400 font-bold shrink-0">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div id="rBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-300" style="width:0%"></div>
+        </div>
+        <div id="pipelineSteps" class="text-[11px] text-slate-400 mt-2 space-y-1.5 hidden-s pt-1 border-t border-slate-800/60">
+            <div id="step1" class="flex items-center gap-2"><i class="fa-regular fa-circle text-slate-500"></i> 1. Validation du script &amp; des paramètres</div>
+            <div id="step2" class="flex items-center gap-2 opacity-50"><i class="fa-regular fa-circle text-slate-500"></i> 2. Génération de la voix off (Fish Audio)</div>
+            <div id="step3" class="flex items-center gap-2 opacity-50"><i class="fa-regular fa-circle text-slate-500"></i> 3. Génération des clips vidéo (Magic Hour)</div>
+            <div id="step4" class="flex items-center gap-2 opacity-50"><i class="fa-regular fa-circle text-slate-500"></i> 4. Assemblage final &amp; encodage (FFmpeg)</div>
         </div>
       </div>
+
       <div class="flex flex-wrap gap-2">
         <button id="btnRender" class="btn b-amb" onclick="generateFullVideoAI()"><i class="fa-solid fa-robot"></i> Lancer le pipeline IA</button>
-        <button id="btnCancel" class="btn b-soft hidden-s" onclick="cancelRender()"><i class="fa-solid fa-stop text-red-400"></i> Annuler</button>
+        <button id="btnDemo" class="btn b-soft" onclick="generateLocalDemoVideo()" title="Tester le rendu et l'assemblage FFmpeg sans clés API"><i class="fa-solid fa-flask text-sky-400"></i> Mode Démo (Sans API)</button>
+        <button id="btnCancel" class="btn b-danger hidden-s" onclick="cancelRender()"><i class="fa-solid fa-stop"></i> Annuler</button>
         <button class="btn b-soft ml-auto" onclick="go(3)">Suivant <i class="fa-solid fa-arrow-right"></i></button>
       </div>
     </div>
@@ -152,37 +207,55 @@
       <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-sliders text-emerald-400"></i> Réglages du Pipeline</h2>
 
       <div>
-        <label class="lbl text-amber-400 font-bold"><i class="fa-solid fa-key"></i> Clés API (requis pour l'IA)</label>
-        <input type="password" id="magicHourKey" class="inp mb-2" placeholder="Clé API Magic Hour">
-        <input type="password" id="fishAudioKey" class="inp" placeholder="Clé API Fish Audio">
-        <p class="text-[10px] text-slate-400 mt-1">Ces clés restent dans votre navigateur et ne sont jamais envoyées sur un serveur.</p>
+        <label class="lbl text-amber-400 font-bold"><i class="fa-solid fa-key"></i> Clés API (Stockage local)</label>
+        <div class="space-y-2">
+          <div class="relative">
+            <input type="password" id="magicHourKey" class="inp pr-8" placeholder="Clé API Magic Hour">
+            <button type="button" onclick="togglePass('magicHourKey')" class="absolute right-2.5 top-2 text-slate-400 hover:text-sky-400 text-xs"><i class="fa-solid fa-eye"></i></button>
+          </div>
+          <div class="relative">
+            <input type="password" id="fishAudioKey" class="inp pr-8" placeholder="Clé API Fish Audio">
+            <button type="button" onclick="togglePass('fishAudioKey')" class="absolute right-2.5 top-2 text-slate-400 hover:text-sky-400 text-xs"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1">Vos clés restent dans le localStorage de votre navigateur.</p>
       </div>
 
-      <div class="border-t pt-2">
-        <label class="lbl">Style visuel (pour les prompts IA)</label>
-        <select id="visualTheme" class="inp">
-          <option value="cinematic" selected>Cinématique &amp; Réaliste</option>
-          <option value="anime">Anime / Manga</option>
-          <option value="3d">Rendu 3D</option>
-          <option value="watercolor">Aquarelle</option>
+      <div class="border-t border-slate-800/60 pt-2">
+        <label class="lbl">Style visuel (Prompts IA)</label>
+        <select id="visualTheme" class="inp" onchange="drawPreviewCanvas()">
+          <option value="cinematic" selected>Cinématique &amp; Réaliste (4K, éclairage studio)</option>
+          <option value="macro">Macro Mécanique / Industriel (Haute précision)</option>
+          <option value="anime">Anime / Manga (Style Ghibli / Makoto Shinkai)</option>
+          <option value="3d">Rendu 3D Unreal Engine 5</option>
+          <option value="watercolor">Aquarelle &amp; Illustration poétique</option>
         </select>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <div>
           <label class="lbl">Résolution Vidéo</label>
-          <select id="exportRes" class="inp">
+          <select id="exportRes" class="inp" onchange="checkResAccess()">
             <option value="480" selected>480p (Gratuit)</option>
-            <option value="720">720p (Payant)</option>
+            <option value="720">720p (Creator)</option>
+            <option value="1080">1080p (Creator)</option>
           </select>
         </div>
         <div>
           <label class="lbl">Format de sortie</label>
           <select id="exportFormat" class="inp">
-            <option value="mp4" selected>.mp4 (Recommandé)</option>
-            <option value="webm">.webm</option>
+            <option value="mp4" selected>.mp4 (H.264)</option>
+            <option value="webm">.webm (VP9)</option>
           </select>
         </div>
+      </div>
+
+      <div class="sub-box p-2.5 rounded-lg border text-[11px] space-y-1">
+        <label class="flex items-center gap-2 cursor-pointer font-medium">
+          <input type="checkbox" id="burnSubtitles" checked class="accent-sky-400">
+          <span>Générer un fichier sous-titres (.srt)</span>
+        </label>
+        <p class="text-[10px] text-slate-400 pl-5">Synchronisé automatiquement avec les segments du script.</p>
       </div>
     </div>
   </section>
@@ -190,35 +263,53 @@
   <!-- ÉTAPE 3 : EXPORT -->
   <section id="s3" class="hidden-s grid grid-cols-1 lg:grid-cols-12 gap-5">
     <div class="lg:col-span-7 card flex flex-col gap-4 border">
-      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-circle-check text-emerald-400"></i> Validation</h2>
-      <div id="videoContainer" class="hidden-s"><video id="player" controls playsinline class="w-full rounded-xl bg-black max-h-[420px] border border-slate-800"></video></div>
-      <div id="noVideoMsg" class="sub-box p-6 rounded-xl text-center text-xs opacity-75">Aucune vidéo générée. Lancez le pipeline IA à l'étape 2.</div>
-      <div class="p-4 rounded-xl border-2 border-amber-500/50 bg-amber-500/10 space-y-3">
-        <div class="text-sm font-bold text-amber-300"><i class="fa-solid fa-lock"></i> Validation requise avant publication</div>
+      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-circle-check text-emerald-400"></i> Prévisualisation &amp; Validation</h2>
+      <div id="videoContainer" class="hidden-s">
+        <video id="player" controls playsinline class="w-full rounded-xl bg-black max-h-[420px] border border-slate-800"></video>
+      </div>
+      <div id="noVideoMsg" class="sub-box p-8 rounded-xl text-center text-xs opacity-75 space-y-2">
+        <i class="fa-solid fa-film text-2xl text-slate-500"></i>
+        <p>Aucune vidéo générée pour le moment. Lancez le pipeline IA ou le mode démo à l'étape 2.</p>
+      </div>
+      <div class="p-4 rounded-xl border-2 border-amber-500/40 bg-amber-500/10 space-y-3">
+        <div class="text-sm font-bold text-amber-400"><i class="fa-solid fa-shield-halved"></i> Contrôle qualité avant publication</div>
+        <p class="text-xs opacity-80">Vérifiez la synchronisation audio/vidéo et la fluidité des transitions avant d'exporter.</p>
         <div class="flex gap-3">
-          <button class="btn b-ok flex-1" onclick="approve()"><i class="fa-solid fa-check"></i> OUI, valider</button>
-          <button class="btn b-soft flex-1" onclick="go(2)"><i class="fa-solid fa-rotate-left"></i> NON, modifier</button>
+          <button class="btn b-ok flex-1" onclick="approve()"><i class="fa-solid fa-check"></i> Valider le montage</button>
+          <button class="btn b-soft flex-1" onclick="go(2)"><i class="fa-solid fa-rotate-left"></i> Retourner au rendu</button>
         </div>
       </div>
     </div>
+
     <div class="lg:col-span-5 card space-y-3 border">
-      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-file-export text-sky-400"></i> Téléchargements</h2>
-      <p class="text-xs opacity-75">Exportez le montage vidéo final généré par l'IA.</p>
-      <button id="dlVid" class="btn b-main w-full" onclick="dlVideo()"><i class="fa-solid fa-video"></i> Télécharger la Vidéo</button>
-      <button id="dlWav" class="btn b-soft w-full" onclick="dlWav()"><i class="fa-solid fa-music text-pink-400"></i> Télécharger l'Audio (.wav)</button>
+      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-file-export text-sky-400"></i> Fichiers d'exportation</h2>
+      <p class="text-xs opacity-75">Téléchargez individuellement la vidéo finale, la piste audio ou les sous-titres.</p>
+      <button id="dlVid" class="btn b-main w-full" onclick="dlVideo()"><i class="fa-solid fa-video"></i> Télécharger la Vidéo (<span id="dlFormatLabel">.mp4</span>)</button>
+      <button id="dlAudioBtn" class="btn b-soft w-full" onclick="dlAudio()"><i class="fa-solid fa-music text-pink-400"></i> Télécharger la Voix Off (.mp3)</button>
+      <button id="dlSrtBtn" class="btn b-soft w-full" onclick="dlSrt()"><i class="fa-solid fa-closed-captioning text-amber-400"></i> Télécharger les Sous-titres (.srt)</button>
     </div>
   </section>
 
 </main>
 
+<!-- MODAL CONNEXION -->
 <div id="loginModal" class="modal-bg" onclick="if(event.target===this)closeLogin()">
   <div class="card max-w-md w-full space-y-4 relative border">
     <button class="btn b-soft !p-2 absolute top-3 right-3" onclick="closeLogin()"><i class="fa-solid fa-xmark"></i></button>
     <h2 class="text-base font-bold"><i class="fa-solid fa-user-shield text-sky-400"></i> Connexion Compte Creator</h2>
-    <p class="text-xs opacity-75">Recevez un lien magique par e-mail pour synchroniser votre abonnement <b>Creator</b> et supprimer le filigrane.</p>
+    <p class="text-xs opacity-75">Recevez un lien magique par e-mail pour synchroniser votre abonnement <b>Creator</b> et débloquer la HD (720p/1080p) sans filigrane.</p>
     <input type="email" id="loginEmail" class="inp" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')loginMagicLink()">
     <button class="btn b-main w-full" onclick="loginMagicLink()"><i class="fa-solid fa-paper-plane"></i> Envoyer le lien</button>
     <div id="loginMsg" class="text-xs text-center"></div>
+  </div>
+</div>
+
+<!-- MODAL PROJETS SAUVEGARDÉS -->
+<div id="projectsModal" class="modal-bg" onclick="if(event.target===this)closeProjectsModal()">
+  <div class="card max-w-lg w-full space-y-4 relative border">
+    <button class="btn b-soft !p-2 absolute top-3 right-3" onclick="closeProjectsModal()"><i class="fa-solid fa-xmark"></i></button>
+    <h2 class="text-base font-bold"><i class="fa-solid fa-folder-open text-sky-400"></i> Projets sauvegardés (Local)</h2>
+    <div id="projectsList" class="max-h-72 overflow-y-auto space-y-2 pr-1"></div>
   </div>
 </div>
 
@@ -238,10 +329,10 @@ let currentScript = [];
 let availableVoices = [];
 let voiceoverBlob = null;
 let finalVideoBlob = null;
-let mediaRecorder = null;
-let recordedChunks = [];
-let isRecording = false;
+let isGenerating = false;
+let abortController = null;
 let videoUrl = null;
+let isValidated = false;
 
 // ==========================================
 // 1. SUPABASE SAAS
@@ -293,19 +384,30 @@ function updateSaaSUI(badgeText, btnText, premium) {
   badge.textContent = badgeText;
   badge.classList.toggle('premium', premium);
   btn.innerHTML = `<i class="fa-solid ${premium ? 'fa-crown text-amber-300' : 'fa-user'}"></i> ${btnText}`;
-  if (hint) hint.textContent = premium ? 'Mode Creator : export HD sans filigrane' : 'Mode Gratuit : filigrane inclus';
+  if (hint) hint.textContent = premium ? 'Mode Creator : export HD (720p/1080p) sans filigrane' : 'Mode Gratuit : 480p max avec filigrane';
+  checkResAccess();
+}
+
+function checkResAccess() {
+  const res = $('exportRes').value;
+  if ((res === '720' || res === '1080') && !isPremium) {
+    toast('La résolution HD (720p/1080p) est réservée au plan Creator. Passage en 480p.', 'err');
+    $('exportRes').value = '480';
+  }
 }
 
 if (supabaseClient) { supabaseClient.auth.onAuthStateChange(() => checkUser()); checkUser(); }
 
 // ==========================================
-// 2. NAVIGATION & NOTIFICATIONS
+// 2. NAVIGATION, THÈME & NOTIFICATIONS
 // ==========================================
 function go(n) {
   for (let i = 1; i <= 3; i++) {
     $('s' + i).classList.toggle('hidden-s', i !== n);
     $('tab' + i).classList.toggle('on', i === n);
   }
+  if (n === 2) drawPreviewCanvas();
+  if (n === 3) $('dlFormatLabel').textContent = '.' + $('exportFormat').value;
 }
 
 function toast(msg, type = 'info') {
@@ -313,7 +415,7 @@ function toast(msg, type = 'info') {
   t.className = 't' + (type === 'err' ? ' err' : type === 'ok' ? ' ok' : '');
   t.textContent = msg;
   $('toast').appendChild(t);
-  setTimeout(() => t.remove(), 3500);
+  setTimeout(() => t.remove(), 3800);
 }
 
 function toggleTheme() {
@@ -329,9 +431,59 @@ if (localStorage.getItem('theme') === 'light') {
   $('themeIcon').className = "fa-solid fa-moon text-sky-600";
 }
 
+function togglePass(id) {
+  const inp = $(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function setProgress(pct, statusText) {
+  $('rBar').style.width = `${Math.min(100, Math.max(0, pct))}%`;
+  $('rPct').textContent = `${Math.round(pct)}%`;
+  if (statusText) $('rStatus').textContent = statusText;
+}
+
 // ==========================================
-// 3. SYNTHÈSE VOCALE (PREVIEW) & SCRIPT
+// 3. SYNTHÈSE VOCALE, PRÉRÉGLAGES & SCRIPT
 // ==========================================
+const PRESETS = {
+  cnc: {
+    topic: "l'usinage CNC haute précision sur un bloc d'aluminium brossé",
+    lang: 'fr',
+    dur: '20',
+    theme: 'macro'
+  },
+  forge: {
+    topic: "le martelage de l'acier incandescent sur l'enclume dans une forge traditionnelle",
+    lang: 'fr',
+    dur: '20',
+    theme: 'cinematic'
+  },
+  rain: {
+    topic: "les gouttes de pluie ruisselant doucement sur une verrière la nuit",
+    lang: 'fr',
+    dur: '30',
+    theme: 'watercolor'
+  },
+  cyber: {
+    topic: "a lone spacecraft drifting past a glowing nebula in deep space",
+    lang: 'en',
+    dur: '20',
+    theme: '3d'
+  }
+};
+
+function applyPreset() {
+  const key = $('presetSelect').value;
+  if (!key || !PRESETS[key]) return;
+  const p = PRESETS[key];
+  $('topic').value = p.topic;
+  $('lang').value = p.lang;
+  $('dur').value = p.dur;
+  $('visualTheme').value = p.theme;
+  loadVoices();
+  generateScript();
+}
+
 function loadVoices() {
   if (!('speechSynthesis' in window)) return;
   availableVoices = window.speechSynthesis.getVoices();
@@ -358,62 +510,266 @@ function speakText(text) {
   window.speechSynthesis.speak(utt);
 }
 
+function stopVoice() {
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
 function testVoice() {
-  const sample = $('lang').value === 'fr' ? 'Bienvenue dans le studio FaceVideo ASMR.' : 'Welcome to FaceVideo ASMR Studio.';
+  const sample = $('lang').value === 'fr' ? 'Bienvenue dans le studio FaceVideo IA.' : 'Welcome to FaceVideo AI Studio.';
   speakText(sample);
 }
 
 function readFullScript() {
-  if (!currentScript.length) { toast('Générez un script.', 'err'); return; }
+  if (!currentScript.length) { toast('Générez ou ajoutez un script.', 'err'); return; }
   speakText(currentScript.join(' ... '));
 }
 
+function renderSegments() {
+  $('segCount').textContent = currentScript.length;
+  $('estDurationBadge').textContent = `~${currentScript.length * 5}s estimées`;
+
+  if (!currentScript.length) {
+    $('segs').innerHTML = `<div class="text-xs text-slate-400 text-center py-12">Générez un script ou ajoutez manuellement des segments pour commencer.</div>`;
+    return;
+  }
+
+  $('segs').innerHTML = currentScript.map((s, i) => `
+    <div class="seg-box p-3 rounded-lg border text-sm flex flex-col gap-1.5 transition-all">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Segment ${i + 1} · 5s</span>
+        <div class="flex items-center gap-2">
+          <button class="text-xs opacity-75 hover:opacity-100 hover:text-sky-400" onclick="speakText(currentScript[${i}])" title="Écouter"><i class="fa-solid fa-volume-low"></i></button>
+          <button class="text-xs opacity-75 hover:opacity-100 hover:text-amber-400" onclick="moveSegment(${i}, -1)" ${i === 0 ? 'disabled' : ''} title="Monter"><i class="fa-solid fa-arrow-up"></i></button>
+          <button class="text-xs opacity-75 hover:opacity-100 hover:text-amber-400" onclick="moveSegment(${i}, 1)" ${i === currentScript.length - 1 ? 'disabled' : ''} title="Descendre"><i class="fa-solid fa-arrow-down"></i></button>
+          <button class="text-xs opacity-75 hover:opacity-100 hover:text-red-400" onclick="deleteSegment(${i})" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+      <textarea class="inp !text-xs" rows="2" oninput="currentScript[${i}]=this.value">${s}</textarea>
+    </div>
+  `).join('');
+}
+
+function addSegment() {
+  const isFr = $('lang').value === 'fr';
+  currentScript.push(isFr ? 'Nouveau segment narratif à personnaliser...' : 'New narrative segment to customize...');
+  renderSegments();
+}
+
+function deleteSegment(idx) {
+  currentScript.splice(idx, 1);
+  renderSegments();
+}
+
+function moveSegment(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= currentScript.length) return;
+  const temp = currentScript[idx];
+  currentScript[idx] = currentScript[newIdx];
+  currentScript[newIdx] = temp;
+  renderSegments();
+}
+
 function generateScript() {
-  const topic = $('topic').value.trim() || 'ambiance sonore mécanique';
+  const topic = $('topic').value.trim() || ($('lang').value === 'fr' ? 'ambiance sonore mécanique' : 'mechanical soundscape');
   const lang = $('lang').value;
   const dur = parseInt($('dur').value) || 10;
   const sentences = lang === 'fr' ? [
-    `Bienvenue dans cette session ASMR dédiée à ${topic}.`,
-    `Fermez les yeux et laissez-vous porter par la précision des sons.`,
-    `Chaque détail compte, chaque texture métallique raconte une histoire.`,
-    `Le métal froid contraste avec la douceur de l'ambiance sonore.`,
-    `Prenez une grande inspiration, puis relâchez lentement.`,
-    `Les vibrations résonnent doucement dans l'espace.`,
-    `Nous explorons ensemble les moindres nuances acoustiques.`,
-    `Un dernier son, puis nous terminerons en douceur.`
+    `Bienvenue dans cette expérience immersive dédiée à ${topic}.`,
+    `Prenez un instant pour observer la précision de chaque mouvement.`,
+    `Chaque détail compte, chaque texture révèle une harmonie subtile.`,
+    `Le contraste entre la matière brute et la douceur sonore apaise l'esprit.`,
+    `Inspirez profondément, puis laissez la tension se dissiper lentement.`,
+    `Les vibrations résonnent avec clarté dans cet espace hors du temps.`,
+    `Nous explorons ensemble les moindres nuances visuelles et acoustiques.`,
+    `La régularité du rythme crée une sensation de calme absolu.`,
+    `Observez la lumière glisser délicatement sur les surfaces.`,
+    `Un dernier instant de contemplation avant de conclure en douceur.`,
+    `Merci d'avoir partagé ce moment de sérénité.`,
+    `À très bientôt pour une nouvelle exploration sensorielle.`
   ] : [
-    `Welcome to this ASMR session dedicated to ${topic}.`,
-    `Close your eyes and let the precision of the sounds guide you.`,
-    `Every detail matters, every metallic texture tells a story.`,
-    `The cold steel contrasts with the softness of the atmosphere.`,
-    `Take a deep breath, then release slowly.`,
-    `The vibrations resonate gently through the space.`,
-    `We explore every subtle acoustic nuance together.`,
-    `One final sound, and we will conclude softly.`
+    `Welcome to this immersive experience dedicated to ${topic}.`,
+    `Take a moment to observe the precision of every single motion.`,
+    `Every detail matters, every texture reveals a subtle harmony.`,
+    `The contrast between raw material and soft acoustics calms the mind.`,
+    `Take a deep breath, and let all tension slowly fade away.`,
+    `Vibrations resonate clearly through this timeless space.`,
+    `Together, we explore every subtle visual and acoustic nuance.`,
+    `The steady rhythm creates a deep sense of tranquility.`,
+    `Watch the light glide delicately across every surface.`,
+    `One final moment of contemplation before we conclude softly.`,
+    `Thank you for sharing this peaceful moment.`,
+    `See you soon for another sensory exploration.`
   ];
-  const count = Math.min(sentences.length, Math.max(3, Math.ceil(dur / 5)));
+  const count = Math.min(sentences.length, Math.max(2, Math.ceil(dur / 5)));
   currentScript = sentences.slice(0, count);
-  $('segs').innerHTML = currentScript.map((s, i) => `
-    <div class="seg-box p-3 rounded-lg border text-sm flex flex-col gap-1.5">
-      <div class="flex items-center justify-between">
-        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Segment ${i + 1}</span>
-        <button class="text-xs opacity-75 hover:opacity-100 hover:text-sky-400" onclick="speakText(currentScript[${i}])" title="Écouter ce segment"><i class="fa-solid fa-volume-low"></i> Écouter</button>
-      </div>
-      <textarea class="inp !text-xs" rows="2" onchange="currentScript[${i}]=this.value">${s}</textarea>
-    </div>
-  `).join('');
-  toast('Script généré avec succès !', 'ok');
+  renderSegments();
+  toast('Script généré ! Vous pouvez éditer chaque segment.', 'ok');
 }
 
 // ==========================================
-// 4. PIPELINE COMPLET (IA)
+// 4. GESTION DES PROJETS (LOCALSTORAGE)
 // ==========================================
-async function generateVoiceoverFish(text) {
+function saveCurrentProject() {
+  if (!currentScript.length) { toast('Rien à sauvegarder : le script est vide.', 'err'); return; }
+  const projects = JSON.parse(localStorage.getItem('fv_projects') || '[]');
+  const title = ($('topic').value.trim() || 'Projet sans titre').slice(0, 45);
+  projects.unshift({
+    id: Date.now(),
+    title,
+    date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+    lang: $('lang').value,
+    dur: $('dur').value,
+    theme: $('visualTheme').value,
+    script: [...currentScript]
+  });
+  localStorage.setItem('fv_projects', JSON.stringify(projects.slice(0, 20)));
+  toast('Projet sauvegardé localement !', 'ok');
+}
+
+function openProjectsModal() {
+  const projects = JSON.parse(localStorage.getItem('fv_projects') || '[]');
+  const listEl = $('projectsList');
+  if (!projects.length) {
+    listEl.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aucun projet sauvegardé.</p>`;
+  } else {
+    listEl.innerHTML = projects.map((p, idx) => `
+      <div class="sub-box p-3 rounded-lg border flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div class="text-xs font-bold truncate">${p.title}</div>
+          <div class="text-[10px] text-slate-400">${p.date} · ${p.script.length} segments · ${p.lang.toUpperCase()}</div>
+        </div>
+        <div class="flex gap-1.5 shrink-0">
+          <button class="btn b-main !py-1 !px-2.5 !text-xs" onclick="loadProject(${idx})">Charger</button>
+          <button class="btn b-danger !py-1 !px-2 !text-xs" onclick="deleteProject(${idx})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    `).join('');
+  }
+  $('projectsModal').classList.add('open');
+}
+
+function closeProjectsModal() { $('projectsModal').classList.remove('open'); }
+
+function loadProject(idx) {
+  const projects = JSON.parse(localStorage.getItem('fv_projects') || '[]');
+  const p = projects[idx];
+  if (!p) return;
+  $('topic').value = p.title;
+  $('lang').value = p.lang;
+  $('dur').value = p.dur;
+  $('visualTheme').value = p.theme;
+  currentScript = [...p.script];
+  loadVoices();
+  renderSegments();
+  closeProjectsModal();
+  go(1);
+  toast('Projet chargé !', 'ok');
+}
+
+function deleteProject(idx) {
+  const projects = JSON.parse(localStorage.getItem('fv_projects') || '[]');
+  projects.splice(idx, 1);
+  localStorage.setItem('fv_projects', JSON.stringify(projects));
+  openProjectsModal();
+}
+
+// ==========================================
+// 5. CANVAS PREVIEW & PIPELINE COMPLET (IA)
+// ==========================================
+function drawPreviewCanvas(activeSegmentIdx = -1, statusOverlay = '') {
+  const canvas = $('cv');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // Fond dégradé selon style
+  const theme = $('visualTheme').value;
+  const grads = {
+    cinematic: ['#0f172a', '#1e293b'],
+    macro: ['#18181b', '#27272a'],
+    anime: ['#1e1b4b', '#312e81'],
+    '3d': ['#042f2e', '#115e59'],
+    watercolor: ['#2e1065', '#4c1d95']
+  };
+  const [c1, c2] = grads[theme] || grads.cinematic;
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, c1);
+  g.addColorStop(1, c2);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+
+  // Grille subtile
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  // Badge style & résolution
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(16, 16, 210, 26);
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '600 11px "JetBrains Mono", monospace';
+  ctx.fillText(`STYLE: ${theme.toUpperCase()} · ${$('exportRes').value}P`, 24, 33);
+
+  // Filigrane si Gratuit
+  if (!isPremium) {
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.font = '700 13px Inter, sans-serif';
+    ctx.fillText('FaceVideo Studio · Gratuit', w - 190, h - 18);
+  }
+
+  // Texte du segment actif ou résumé
+  ctx.fillStyle = '#f8fafc';
+  ctx.textAlign = 'center';
+  if (activeSegmentIdx >= 0 && currentScript[activeSegmentIdx]) {
+    ctx.font = '600 15px Inter, sans-serif';
+    wrapCanvasText(ctx, `"${currentScript[activeSegmentIdx]}"`, w / 2, h / 2 - 10, w - 80, 22);
+  } else if (currentScript.length) {
+    ctx.font = '600 16px Inter, sans-serif';
+    ctx.fillText(`Storyboard prêt : ${currentScript.length} scènes (${currentScript.length * 5}s)`, w / 2, h / 2 - 10);
+    ctx.font = '400 12px Inter, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Cliquez sur "Lancer le pipeline IA" ou "Mode Démo"', w / 2, h / 2 + 16);
+  } else {
+    ctx.font = '500 14px Inter, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Aucun segment de script défini (Étape 1)', w / 2, h / 2);
+  }
+
+  if (statusOverlay) {
+    ctx.fillStyle = 'rgba(2, 132, 199, 0.9)';
+    ctx.fillRect(0, h - 36, w, 36);
+    ctx.fillStyle = '#fff';
+    ctx.font = '600 12px "JetBrains Mono", monospace';
+    ctx.fillText(statusOverlay, w / 2, h - 14);
+  }
+  ctx.textAlign = 'left';
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let line = '';
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + ' ';
+    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+      ctx.fillText(line, x, y);
+      line = words[n] + ' ';
+      y += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, y);
+}
+
+async function generateVoiceoverFish(text, signal) {
   const apiKey = $('fishAudioKey').value.trim();
   if (!apiKey) throw new Error('Clé API Fish Audio manquante.');
   
   const response = await fetch('https://api.fish.audio/v1/tts', {
     method: 'POST',
+    signal,
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
@@ -421,16 +777,17 @@ async function generateVoiceoverFish(text) {
     },
     body: JSON.stringify({ text: text, format: 'mp3' })
   });
-  if (!response.ok) throw new Error(`Erreur Fish Audio: ${response.status}`);
+  if (!response.ok) throw new Error(`Erreur Fish Audio (${response.status})`);
   return await response.blob();
 }
 
-async function generateVideoClipMagicHour(prompt) {
+async function generateVideoClipMagicHour(prompt, resolution, signal) {
   const apiKey = $('magicHourKey').value.trim();
   if (!apiKey) throw new Error('Clé API Magic Hour manquante.');
   
   const createRes = await fetch('https://api.magichour.ai/v1/text-to-video', {
     method: 'POST',
+    signal,
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
@@ -439,28 +796,30 @@ async function generateVideoClipMagicHour(prompt) {
       model: 'ltx-2.5',
       style: { prompt: prompt },
       duration: 5,
-      resolution: '480p'
+      resolution: `${resolution}p`
     })
   });
-  if (!createRes.ok) throw new Error(`Erreur création Magic Hour: ${createRes.status}`);
+  if (!createRes.ok) throw new Error(`Erreur création Magic Hour (${createRes.status})`);
   const job = await createRes.json();
   const jobId = job.id;
 
-  let videoUrl = null;
-  while (!videoUrl) {
+  let clipUrl = null;
+  while (!clipUrl) {
+    if (signal?.aborted) throw new DOMException('Annulé par l’utilisateur', 'AbortError');
     await new Promise(r => setTimeout(r, 5000));
     const statusRes = await fetch(`https://api.magichour.ai/v1/video-projects/${jobId}`, {
+      signal,
       headers: { 'Authorization': `Bearer ${apiKey}` }
     });
     if (!statusRes.ok) throw new Error('Erreur de statut Magic Hour');
     const status = await statusRes.json();
     if (status.status === 'complete') {
-      videoUrl = status.download_url;
+      clipUrl = status.download_url;
     } else if (status.status === 'error') {
-      throw new Error('Erreur lors de la génération de la vidéo par Magic Hour');
+      throw new Error('Erreur lors de la génération vidéo Magic Hour');
     }
   }
-  return videoUrl;
+  return clipUrl;
 }
 
 async function loadFFmpeg() {
@@ -473,148 +832,287 @@ async function loadFFmpeg() {
   });
 }
 
-async function assembleVideo(videoUrls, voiceoverBlob) {
+async function assembleVideo(videoSources, audioBlob, isUrlList = true) {
   await loadFFmpeg();
   const listContent = [];
-  for (let i = 0; i < videoUrls.length; i++) {
-    const videoData = await fetchFile(videoUrls[i]);
+  for (let i = 0; i < videoSources.length; i++) {
+    const videoData = isUrlList ? await fetchFile(videoSources[i]) : videoSources[i];
     const fileName = `clip${i}.mp4`;
     await ffmpeg.writeFile(fileName, videoData);
     listContent.push(`file '${fileName}'`);
   }
-  await ffmpeg.writeFile('list.txt', listContent.join('\n'));
+  await ffmpeg.writeFile('list.txt', listContent.join('
+'));
   
-  if (voiceoverBlob) {
-    await ffmpeg.writeFile('voiceover.mp3', await fetchFile(voiceoverBlob));
+  if (audioBlob) {
+    await ffmpeg.writeFile('voiceover.mp3', await fetchFile(audioBlob));
   }
 
   await ffmpeg.exec(['-f', 'concat', '-safe', '0', '-i', 'list.txt', '-c', 'copy', 'video_only.mp4']);
 
-  if (voiceoverBlob) {
+  const outFormat = $('exportFormat').value;
+  const outName = `final_video.${outFormat}`;
+
+  if (audioBlob) {
     await ffmpeg.exec([
       '-i', 'video_only.mp4',
       '-i', 'voiceover.mp3',
-      '-c:v', 'copy',
-      '-c:a', 'aac',
+      '-c:v', outFormat === 'webm' ? 'libvpx-vp9' : 'copy',
+      '-c:a', outFormat === 'webm' ? 'libopus' : 'aac',
       '-map', '0:v:0',
       '-map', '1:a:0',
       '-shortest',
-      'final_video.mp4'
+      outName
     ]);
   } else {
-    await ffmpeg.exec(['-i', 'video_only.mp4', '-c', 'copy', 'final_video.mp4']);
+    await ffmpeg.exec(['-i', 'video_only.mp4', '-c', 'copy', outName]);
   }
 
-  const finalData = await ffmpeg.readFile('final_video.mp4');
-  return new Blob([finalData.buffer], { type: 'video/mp4' });
+  const finalData = await ffmpeg.readFile(outName);
+  return new Blob([finalData.buffer], { type: outFormat === 'webm' ? 'video/webm' : 'video/mp4' });
+}
+
+function updateStepUI(num, status) {
+  const labels = [
+    '1. Validation du script & des paramètres',
+    '2. Génération de la voix off (Fish Audio)',
+    '3. Génération des clips vidéo (Magic Hour)',
+    '4. Assemblage final & encodage (FFmpeg)'
+  ];
+  for (let i = 1; i <= 4; i++) {
+    const el = $('step' + i);
+    if (i < num || (i === num && status === 'done')) {
+      el.innerHTML = `<i class="fa-solid fa-check-circle text-emerald-400"></i> ${labels[i-1]}`;
+      el.classList.remove('opacity-50');
+    } else if (i === num && status === 'loading') {
+      el.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sky-400"></i> ${labels[i-1]}`;
+      el.classList.remove('opacity-50');
+    } else {
+      el.innerHTML = `<i class="fa-regular fa-circle text-slate-500"></i> ${labels[i-1]}`;
+      el.classList.add('opacity-50');
+    }
+  }
 }
 
 async function generateFullVideoAI() {
-  if (isRecording) return;
-  isRecording = true;
+  if (isGenerating) return;
+  isGenerating = true;
+  isValidated = false;
+  abortController = new AbortController();
+  const signal = abortController.signal;
+
   $('btnRender').disabled = true;
+  $('btnDemo').disabled = true;
   $('btnCancel').classList.remove('hidden-s');
   $('pipelineSteps').classList.remove('hidden-s');
-
-  const setStep = (num, status) => {
-    for(let i=1; i<=4; i++) {
-      const el = $('step' + i);
-      if (i < num) {
-        el.innerHTML = `<i class="fa-solid fa-check-circle text-emerald-400"></i> ${el.textContent.trim().slice(2)}`;
-        el.classList.remove('opacity-50');
-      } else if (i === num) {
-        if (status === 'loading') el.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sky-400"></i> ${el.textContent.trim().slice(2)}`;
-        else el.innerHTML = `<i class="fa-solid fa-check-circle text-emerald-400"></i> ${el.textContent.trim().slice(2)}`;
-        el.classList.remove('opacity-50');
-      } else {
-        el.innerHTML = `<i class="fa-regular fa-circle text-slate-500"></i> ${el.textContent.trim().slice(2)}`;
-        el.classList.add('opacity-50');
-      }
-    }
-  };
+  setProgress(5, 'Initialisation du pipeline...');
 
   try {
-    setStep(1, 'loading');
-    generateScript();
-    setStep(1, 'done');
+    // Étape 1 : Conserver le script édité s'il existe déjà !
+    updateStepUI(1, 'loading');
+    if (!currentScript.length) {
+      generateScript();
+    }
+    await new Promise(r => setTimeout(r, 300));
+    updateStepUI(1, 'done');
+    setProgress(15, 'Script validé.');
 
-    setStep(2, 'loading');
+    // Étape 2 : Voix off Fish Audio
+    updateStepUI(2, 'loading');
+    setProgress(25, 'Génération de la voix off via Fish Audio...');
+    drawPreviewCanvas(0, 'Synthèse vocale en cours...');
     const fullText = currentScript.join(' ');
-    voiceoverBlob = await generateVoiceoverFish(fullText);
-    setStep(2, 'done');
+    voiceoverBlob = await generateVoiceoverFish(fullText, signal);
+    updateStepUI(2, 'done');
+    setProgress(40, 'Voix off générée.');
 
-    setStep(3, 'loading');
+    // Étape 3 : Clips vidéo Magic Hour
+    updateStepUI(3, 'loading');
     const videoUrls = [];
     const style = $('visualTheme').value;
+    const res = $('exportRes').value;
     for (let i = 0; i < currentScript.length; i++) {
-      $('rStatus').textContent = `Génération du clip ${i+1}/${currentScript.length}...`;
-      const prompt = `${style} style: ${currentScript[i]}`;
-      const url = await generateVideoClipMagicHour(prompt);
+      const basePct = 40 + ((i / currentScript.length) * 45);
+      setProgress(basePct, `Génération clip ${i + 1}/${currentScript.length}...`);
+      drawPreviewCanvas(i, `Génération vidéo IA (${i + 1}/${currentScript.length})...`);
+      const prompt = `${style} cinematic visual, high detail, smooth motion: ${currentScript[i]}`;
+      const url = await generateVideoClipMagicHour(prompt, res, signal);
       videoUrls.push(url);
     }
-    setStep(3, 'done');
+    updateStepUI(3, 'done');
+    setProgress(85, 'Tous les clips sont prêts.');
 
-    setStep(4, 'loading');
-    $('rStatus').textContent = 'Assemblage final avec FFmpeg...';
-    finalVideoBlob = await assembleVideo(videoUrls, voiceoverBlob);
-    setStep(4, 'done');
+    // Étape 4 : Assemblage FFmpeg
+    updateStepUI(4, 'loading');
+    setProgress(90, 'Assemblage final avec FFmpeg...');
+    drawPreviewCanvas(-1, 'Montage & encodage FFmpeg...');
+    finalVideoBlob = await assembleVideo(videoUrls, voiceoverBlob, true);
+    updateStepUI(4, 'done');
+    setProgress(100, 'Rendu terminé avec succès !');
 
-    videoUrl = URL.createObjectURL(finalVideoBlob);
-    $('player').src = videoUrl;
-    $('videoContainer').classList.remove('hidden-s');
-    $('noVideoMsg').classList.add('hidden-s');
-    toast('Vidéo complète générée avec succès !', 'ok');
-    go(3);
-
+    finalizeOutput();
   } catch (err) {
-    console.error(err);
-    toast(err.message, 'err');
-    $('rStatus').textContent = 'Erreur : ' + err.message;
+    if (err.name === 'AbortError') {
+      setProgress(0, 'Rendu annulé par l’utilisateur.');
+      toast('Pipeline annulé.', 'info');
+    } else {
+      console.error(err);
+      toast(err.message, 'err');
+      $('rStatus').textContent = 'Erreur : ' + err.message;
+    }
   } finally {
-    isRecording = false;
+    isGenerating = false;
+    abortController = null;
     $('btnRender').disabled = false;
+    $('btnDemo').disabled = false;
     $('btnCancel').classList.add('hidden-s');
+    drawPreviewCanvas();
   }
 }
 
+// Mode Démo sans clés API (génère une vidéo réelle à partir du Canvas)
+async function generateLocalDemoVideo() {
+  if (isGenerating) return;
+  if (!currentScript.length) generateScript();
+
+  isGenerating = true;
+  isValidated = false;
+  $('btnRender').disabled = true;
+  $('btnDemo').disabled = true;
+  $('pipelineSteps').classList.remove('hidden-s');
+
+  try {
+    updateStepUI(1, 'done');
+    updateStepUI(2, 'done');
+    updateStepUI(3, 'loading');
+    setProgress(30, 'Génération des scènes locales (Canvas)...');
+
+    const canvas = $('cv');
+    const stream = canvas.captureStream(30);
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+    const recDone = new Promise(resolve => {
+      recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
+    });
+
+    recorder.start();
+    for (let i = 0; i < currentScript.length; i++) {
+      setProgress(30 + ((i + 1) / currentScript.length) * 50, `Rendu scène démo ${i + 1}/${currentScript.length}...`);
+      drawPreviewCanvas(i, `APERÇU DÉMO · SCÈNE ${i + 1}/${currentScript.length}`);
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    recorder.stop();
+    finalVideoBlob = await recDone;
+
+    updateStepUI(3, 'done');
+    updateStepUI(4, 'done');
+    setProgress(100, 'Vidéo démo prête !');
+    finalizeOutput();
+  } catch (e) {
+    toast('Erreur mode démo : ' + e.message, 'err');
+  } finally {
+    isGenerating = false;
+    $('btnRender').disabled = false;
+    $('btnDemo').disabled = false;
+    drawPreviewCanvas();
+  }
+}
+
+function finalizeOutput() {
+  if (videoUrl) URL.revokeObjectURL(videoUrl);
+  videoUrl = URL.createObjectURL(finalVideoBlob);
+  $('player').src = videoUrl;
+  $('videoContainer').classList.remove('hidden-s');
+  $('noVideoMsg').classList.add('hidden-s');
+  toast('Vidéo générée avec succès !', 'ok');
+  go(3);
+}
+
 function cancelRender() {
-  isRecording = false;
+  if (abortController) abortController.abort();
+  isGenerating = false;
   $('btnRender').disabled = false;
+  $('btnDemo').disabled = false;
   $('btnCancel').classList.add('hidden-s');
-  $('rStatus').textContent = 'Rendu annulé.';
-  toast('Rendu annulé.', 'info');
 }
 
 // ==========================================
-// 5. EXPORT
+// 6. EXPORT & SOUS-TITRES (.SRT)
 // ==========================================
 function approve() {
-  if (!videoUrl) { toast('Générez d\'abord la vidéo.', 'err'); return; }
-  toast('Vidéo validée ! Prête pour le téléchargement.', 'ok');
+  if (!videoUrl) { toast('Générez d'abord la vidéo.', 'err'); return; }
+  isValidated = true;
+  toast('Montage validé ! Prêt pour le téléchargement.', 'ok');
 }
 
 function dlVideo() {
   if (!finalVideoBlob) { toast('Aucune vidéo à télécharger.', 'err'); return; }
+  if (!isValidated) {
+    toast('Veuillez d'abord cliquer sur "Valider le montage".', 'err');
+    return;
+  }
+  const ext = finalVideoBlob.type.includes('webm') ? 'webm' : $('exportFormat').value;
   const a = document.createElement('a');
   a.href = videoUrl;
-  a.download = `facevideo_ai_${$('exportRes').value}p.mp4`;
+  a.download = `facevideo_ai_${$('exportRes').value}p.${ext}`;
   a.click();
 }
 
-function dlWav() {
-  if (!voiceoverBlob) { toast('Aucune voix off à télécharger.', 'err'); return; }
+function dlAudio() {
+  if (!voiceoverBlob) { toast('Aucune piste audio IA générée.', 'err'); return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(voiceoverBlob);
   a.download = 'facevideo_voiceover.mp3';
   a.click();
 }
 
-// Init
+function formatSrtTime(totalSeconds) {
+  const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const secs = String(Math.floor(totalSeconds % 60)).padStart(2, '0');
+  return `${hrs}:${mins}:${secs},000`;
+}
+
+function dlSrt() {
+  if (!currentScript.length) { toast('Aucun script pour générer les sous-titres.', 'err'); return; }
+  const srtContent = currentScript.map((text, idx) => {
+    const start = formatSrtTime(idx * 5);
+    const end = formatSrtTime((idx + 1) * 5);
+    return `${idx + 1}
+${start} --> ${end}
+${text}
+`;
+  }).join('
+');
+
+  const blob = new Blob([srtContent], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'facevideo_subtitles.srt';
+  a.click();
+  toast('Fichier sous-titres (.srt) téléchargé !', 'ok');
+}
+
+// ==========================================
+// 7. EXPOSITION GLOBALE & INITIALISATION
+// ==========================================
+Object.assign(window, {
+  go, openLogin, closeLogin, loginMagicLink, toggleTheme, togglePass,
+  applyPreset, loadVoices, testVoice, stopVoice, readFullScript,
+  generateScript, addSegment, deleteSegment, moveSegment,
+  saveCurrentProject, openProjectsModal, closeProjectsModal, loadProject, deleteProject,
+  drawPreviewCanvas, checkResAccess, generateFullVideoAI, generateLocalDemoVideo, cancelRender,
+  approve, dlVideo, dlAudio, dlSrt, speakText
+});
+
 $('magicHourKey').value = localStorage.getItem('mh_key') || '';
 $('fishAudioKey').value = localStorage.getItem('fish_key') || '';
 $('magicHourKey').addEventListener('change', (e) => localStorage.setItem('mh_key', e.target.value));
 $('fishAudioKey').addEventListener('change', (e) => localStorage.setItem('fish_key', e.target.value));
 
+drawPreviewCanvas();
 </script>
 </body>
 </html>
