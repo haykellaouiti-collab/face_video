@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steel &amp; Sound ASMR - Studio Pro SaaS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {} }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; overflow-x: hidden; transition: background .3s, color .3s; }
+    body.dark { background: #0b0f17; color: #e2e8f0; }
+    body.dark .card { background: rgba(22,30,44,.82); border-color: rgba(86,114,152,.22); }
+    body.dark .inp { background: #141b27; border-color: rgba(86,114,152,.35); color: #e2e8f0; }
+    body.dark header { background: rgba(14,20,31,0.9); border-color: #1e293b; }
+    body.dark .nav-bar { background: #090d15; border-color: #1e293b; }
+    body.dark .sub-box { background: #121824; border-color: #1e293b; }
+    body.dark .seg-box { background: #101826; border-color: #1e293b; }
+    body:not(.dark) { background: #f8fafc; color: #1e293b; }
+    body:not(.dark) .card { background: rgba(255,255,255,0.9); border-color: rgba(203,213,225,0.6); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    body:not(.dark) .inp { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+    body:not(.dark) header { background: rgba(255,255,255,0.9); border-color: #e2e8f0; }
+    body:not(.dark) .nav-bar { background: #f1f5f9; border-color: #cbd5e1; }
+    body:not(.dark) .sub-box { background: #f1f5f9; border-color: #cbd5e1; }
+    body:not(.dark) .seg-box { background: #ffffff; border-color: #cbd5e1; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .card { backdrop-filter: blur(10px); border-radius: 1rem; padding: 1.25rem; border: 1px solid; }
+    .inp { width: 100%; border-radius: .65rem; padding: .55rem .75rem; font-size: .82rem; transition: all .15s; border: 1px solid; }
+    .inp:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,.2); }
+    .lbl { display: block; font-size: .72rem; font-weight: 500; color: #94a3b8; margin-bottom: .35rem; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .65rem 1.1rem; border-radius: .75rem; font-size: .82rem; font-weight: 600; transition: all .15s; cursor: pointer; user-select: none; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .b-main { background: linear-gradient(135deg,#0284c7,#2563eb); color: #fff; } .b-main:hover:not(:disabled) { filter: brightness(1.15); }
+    .b-soft { background: #1e293b; color: #cbd5e1; border: 1px solid rgba(148,163,184,.2); } body:not(.dark) .b-soft { background: #e2e8f0; color: #334155; border-color: #cbd5e1; } .b-soft:hover:not(:disabled) { filter: brightness(1.1); }
+    .b-ok { background: #059669; color: #fff; } .b-ok:hover:not(:disabled) { background: #047857; }
+    .b-amb { background: linear-gradient(135deg,#d97706,#b45309); color: #fff; } .b-amb:hover:not(:disabled) { filter: brightness(1.15); }
+    .tab { padding: .55rem 1rem; border-radius: .6rem; font-size: .8rem; font-weight: 600; color: #7991b1; transition: all .15s; display: flex; gap: .5rem; align-items: center; cursor: pointer; }
+    .tab.on { background: #1e293b; color: #38bdf8; border: 1px solid rgba(56,189,248,.3); } body:not(.dark) .tab.on { background: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
+    .hidden-s { display: none !important; }
+    #toast { position: fixed; right: 1rem; bottom: 1rem; z-index: 100; display: flex; flex-direction: column; gap: .5rem; }
+    .t { padding: .65rem 1rem; border-radius: .7rem; font-size: .8rem; max-width: 26rem; box-shadow: 0 8px 24px rgba(0,0,0,.5); color: #fff; background: #0284c7; }
+    .t.err { background: #dc2626; }
+    .t.ok { background: #059669; }
+    input[type=range] { accent-color: #38bdf8; }
+    .badge { padding: .25rem .65rem; border-radius: 9999px; font-size: .7rem; font-weight: 700; background: #1e293b; color: #94a3b8; border: 1px solid rgba(148,163,184,.25); } body:not(.dark) .badge { background: #e2e8f0; color: #475569; }
+    .badge.premium { background: linear-gradient(135deg,#0284c7,#2563eb); color: #fff; border-color: #38bdf8; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); z-index: 90; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-bg.open { display: flex; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col dark">
+
+<header class="border-b sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 min-h-16 py-2 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-300 via-slate-500 to-slate-700 flex items-center justify-center text-slate-950 text-lg"><i class="fa-solid fa-compact-disc"></i></div>
+      <div>
+        <h1 class="text-base font-bold leading-tight">STEEL &amp; SOUND</h1>
+        <p class="text-[11px] opacity-75">Studio ASMR Pro · TTS &amp; Rendu Local</p>
+      </div>
+    </div>
+
+    <nav class="flex gap-1 nav-bar p-1 rounded-xl border">
+      <button class="tab on" id="tab1" onclick="go(1)"><i class="fa-solid fa-pen-nib text-sky-400"></i> 1 · Script &amp; Voix</button>
+      <button class="tab" id="tab2" onclick="go(2)"><i class="fa-solid fa-film text-amber-400"></i> 2 · Rendu HD</button>
+      <button class="tab" id="tab3" onclick="go(3)"><i class="fa-solid fa-circle-check text-emerald-400"></i> 3 · Export</button>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <button class="btn b-soft !py-1.5 !px-2.5 !text-xs" onclick="toggleTheme()" title="Basculer Mode Jour / Nuit"><i id="themeIcon" class="fa-solid fa-sun text-amber-400"></i></button>
+      <span id="authStatus" class="badge">Gratuit</span>
+      <button id="btnAuth" class="btn b-soft !py-1.5 !px-3 !text-xs" onclick="openLogin()"><i class="fa-solid fa-user"></i> Connexion</button>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 flex flex-col gap-5">
+
+  <!-- ÉTAPE 1 : SCRIPT & VOIX TTS -->
+  <section id="s1" class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+    <div class="lg:col-span-5 card flex flex-col gap-4 border">
+      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-sliders text-sky-400"></i> Générateur de script &amp; narration</h2>
+      <div><label class="lbl">Sujet / Consignes ASMR</label><textarea id="topic" rows="3" class="inp" placeholder="Ex : pluie sur une vitre, forge, usinage CNC haute précision..."></textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl">Langue</label><select id="lang" class="inp" onchange="loadVoices()"><option value="fr">Français</option><option value="en">Anglais</option></select></div>
+        <div><label class="lbl">Durée cible</label><select id="dur" class="inp"><option value="10" selected>10 secondes</option><option value="20">20 secondes</option><option value="30">30 secondes</option><option value="60">1 minute</option></select></div>
+      </div>
+
+      <div class="sub-box p-3 rounded-xl border space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-sky-400"><i class="fa-solid fa-microphone-lines"></i> Voix off (Preview)</span>
+          <label class="flex items-center gap-2 text-xs cursor-pointer">
+            <input type="checkbox" id="ttsEnabled" checked class="accent-sky-400"> Activer
+          </label>
+        </div>
+        <div>
+          <label class="lbl">Sélection de la voix</label>
+          <select id="voiceSelect" class="inp"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="lbl">Débit : <span id="rateVal">0.85</span>x</label><input id="ttsRate" type="range" min="0.5" max="1.3" step="0.05" value="0.85" class="w-full" oninput="$('rateVal').textContent=this.value"></div>
+          <div><label class="lbl">Hauteur : <span id="pitchVal">0.90</span></label><input id="ttsPitch" type="range" min="0.5" max="1.5" step="0.05" value="0.90" class="w-full" oninput="$('pitchVal').textContent=this.value"></div>
+        </div>
+        <button class="btn b-soft w-full !py-1.5 !text-xs" onclick="testVoice()"><i class="fa-solid fa-volume-high text-sky-400"></i> Tester la voix (Preview)</button>
+        <p class="text-[10px] text-amber-500/80 text-center mt-1"><i class="fa-solid fa-circle-info"></i> La voix n'est pas enregistrée dans la vidéo, seulement le son ASMR.</p>
+      </div>
+
+      <button class="btn b-main" onclick="generateScript()"><i class="fa-solid fa-wand-magic-sparkles"></i> Générer le script</button>
+    </div>
+
+    <div class="lg:col-span-7 card flex flex-col gap-3 border">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h2 class="text-sm font-semibold"><i class="fa-solid fa-list-check text-sky-400"></i> Segments du script (éditables)</h2>
+        <button class="btn b-soft !py-1 !px-2.5 !text-xs" onclick="readFullScript()"><i class="fa-solid fa-play text-emerald-400"></i> Écouter tout</button>
+      </div>
+      <div id="segs" class="flex-1 max-h-[460px] overflow-y-auto space-y-2 pr-1">
+        <div class="text-xs text-slate-400 text-center py-10">Générez un script pour afficher les segments.</div>
+      </div>
+      <button class="btn b-soft w-full" onclick="go(2)">Passer au rendu vidéo <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <!-- ÉTAPE 2 : RENDU HD & ANIMATIONS THÉMATIQUES -->
+  <section id="s2" class="hidden-s grid grid-cols-1 lg:grid-cols-12 gap-5">
+    <div class="lg:col-span-8 card flex flex-col gap-3 border">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h2 class="text-sm font-semibold"><i class="fa-solid fa-display text-amber-400"></i> Rendu vidéo HD</h2>
+        <span id="planHint" class="text-[11px] opacity-75">Mode Gratuit : filigrane discret inclus</span>
+      </div>
+      <div class="relative bg-black rounded-xl flex items-center justify-center min-h-[300px] overflow-hidden p-2 border border-slate-800">
+        <canvas id="cv" class="max-w-full max-h-[430px] rounded"></canvas>
+      </div>
+      <div class="sub-box p-3 rounded-xl border space-y-1.5">
+        <div class="flex justify-between text-xs mono"><span id="rStatus">Prêt pour le rendu.</span><span id="rPct" class="text-amber-400 font-bold">0%</span></div>
+        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden"><div id="rBar" class="h-full bg-amber-500 transition-all" style="width:0%"></div></div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="btnRender" class="btn b-amb" onclick="renderVideo()"><i class="fa-solid fa-film"></i> Générer la vidéo</button>
+        <button id="btnCancel" class="btn b-soft hidden-s" onclick="cancelRender()"><i class="fa-solid fa-stop text-red-400"></i> Annuler</button>
+        <button class="btn b-soft ml-auto" onclick="go(3)">Suivant <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="lg:col-span-4 card flex flex-col gap-3 border">
+      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-sliders text-emerald-400"></i> Réglages Studio</h2>
+
+      <div>
+        <label class="lbl">Animation visuelle thématique</label>
+        <select id="visualTheme" class="inp">
+          <option value="steel">Mécanique &amp; Engrenages (Steel)</option>
+          <option value="rain">Pluie &amp; Ondes sur vitre</option>
+          <option value="waves">Spectre Audio / Fréquences ASMR</option>
+          <option value="circles">Cercles concentriques zen</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="lbl">Ambiance chromatique</label>
+        <select id="mood" class="inp">
+          <option value="cold">Froide (Acier / Bleu nuit)</option>
+          <option value="warm">Chaleureuse (Ambre / Forge)</option>
+          <option value="mystery">Mystérieuse (Violet profond)</option>
+          <option value="emerald">Émeraude (Forêt / Calme)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="lbl">Nappe sonore générative (Enregistrée)</label>
+        <select id="soundType" class="inp">
+          <option value="white">Bruit blanc filtré (pluie douce)</option>
+          <option value="brown">Bruit brun profond (feu / grondement)</option>
+          <option value="binaural">Battement binaural 4 Hz (relaxation)</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="lbl">Résolution Export</label>
+          <select id="exportRes" class="inp">
+            <option value="720" selected>720p HD</option>
+            <option value="1080">1080p Full HD</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Débit vidéo</label>
+          <select id="exportBitrate" class="inp">
+            <option value="3000000">Standard (3 Mbps)</option>
+            <option value="6000000" selected>Élevé (6 Mbps)</option>
+            <option value="10000000">Master (10 Mbps)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="lbl">Intensité &amp; Densité : <span id="densVal">50</span>%</label>
+        <input id="density" type="range" min="10" max="100" value="50" class="w-full" oninput="$('densVal').textContent=this.value">
+      </div>
+
+      <label class="flex items-center gap-2 text-xs cursor-pointer pt-1">
+        <input type="checkbox" id="showSubtitles" checked class="accent-sky-400"> Afficher les sous-titres sur la vidéo
+      </label>
+    </div>
+  </section>
+
+  <!-- ÉTAPE 3 : EXPORT -->
+  <section id="s3" class="hidden-s grid grid-cols-1 lg:grid-cols-12 gap-5">
+    <div class="lg:col-span-7 card flex flex-col gap-4 border">
+      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-circle-check text-emerald-400"></i> Validation</h2>
+      <div id="videoContainer" class="hidden-s"><video id="player" controls playsinline class="w-full rounded-xl bg-black max-h-[420px] border border-slate-800"></video></div>
+      <div id="noVideoMsg" class="sub-box p-6 rounded-xl text-center text-xs opacity-75">Aucune vidéo générée. Lancez le rendu à l'étape 2.</div>
+      <div class="p-4 rounded-xl border-2 border-amber-500/50 bg-amber-500/10 space-y-3">
+        <div class="text-sm font-bold text-amber-300"><i class="fa-solid fa-lock"></i> Validation requise avant publication</div>
+        <div class="flex gap-3">
+          <button class="btn b-ok flex-1" onclick="approve()"><i class="fa-solid fa-check"></i> OUI, valider</button>
+          <button class="btn b-soft flex-1" onclick="go(2)"><i class="fa-solid fa-rotate-left"></i> NON, modifier</button>
+        </div>
+      </div>
+    </div>
+    <div class="lg:col-span-5 card space-y-3 border">
+      <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-file-export text-sky-400"></i> Téléchargements</h2>
+      <p class="text-xs opacity-75">Exportez le montage vidéo complet avec piste sonore générative.</p>
+      <button id="dlVid" class="btn b-main w-full" onclick="dlVideo()"><i class="fa-solid fa-video"></i> Télécharger Vidéo (.webm)</button>
+      <button id="dlWav" class="btn b-soft w-full" onclick="dlWav()"><i class="fa-solid fa-music text-pink-400"></i> Télécharger Audio (.wav)</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="loginModal" class="modal-bg" onclick="if(event.target===this)closeLogin()">
+  <div class="card max-w-md w-full space-y-4 relative border">
+    <button class="btn b-soft !p-2 absolute top-3 right-3" onclick="closeLogin()"><i class="fa-solid fa-xmark"></i></button>
+    <h2 class="text-base font-bold"><i class="fa-solid fa-user-shield text-sky-400"></i> Connexion Compte Creator</h2>
+    <p class="text-xs opacity-75">Recevez un lien magique par e-mail pour synchroniser votre abonnement <b>Creator</b> et supprimer le filigrane.</p>
+    <input type="email" id="loginEmail" class="inp" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')loginMagicLink()">
+    <button class="btn b-main w-full" onclick="loginMagicLink()"><i class="fa-solid fa-paper-plane"></i> Envoyer le lien</button>
+    <div id="loginMsg" class="text-xs text-center"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+
+// ==========================================
+// 0. MODE JOUR / NUIT
+// ==========================================
+function toggleTheme() {
+  const body = document.body;
+  const icon = $('themeIcon');
+  body.classList.toggle('dark');
+  const isDark = body.classList.contains('dark');
+  icon.className = isDark ? "fa-solid fa-sun text-amber-400" : "fa-solid fa-moon text-sky-600";
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+if (localStorage.getItem('theme') === 'light') {
+  document.body.classList.remove('dark');
+  $('themeIcon').className = "fa-solid fa-moon text-sky-600";
+}
+
+// ==========================================
+// 1. SUPABASE SAAS
+// ==========================================
+const SUPABASE_URL = 'https://gxjhkjpxpahgoiezdzxl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4amhranB4cGFoZ29pZXpkenhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NTU2NzIsImV4cCI6MjExMDMzMTY3Mn0.yL2PldZ4b9KFC9DzXPBwti-CQnpNLPKD1wUHhDWcr1c';
+
+let supabaseClient = null;
+let isPremium = false;
+
+if (window.supabase && typeof window.supabase.createClient === 'function') {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+function openLogin() { $('loginModal').classList.add('open'); }
+function closeLogin() { $('loginModal').classList.remove('open'); }
+
+async function loginMagicLink() {
+  if (!supabaseClient) { toast('Client Supabase non disponible.', 'err'); return; }
+  const email = $('loginEmail').value.trim();
+  const msg = $('loginMsg');
+  if (!email) { msg.innerHTML = '<span class="text-red-400">Veuillez saisir une adresse e-mail.</span>'; return; }
+  msg.innerHTML = '<span class="text-sky-400">Envoi du lien magique...</span>';
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+  msg.innerHTML = error
+    ? `<span class="text-red-400">${error.message}</span>`
+    : '<span class="text-emerald-400">Lien envoyé ! Consultez votre boîte mail.</span>';
+}
+
+async function checkUser() {
+  if (!supabaseClient) return;
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const btn = $('btnAuth');
+    if (!session) {
+      isPremium = false;
+      updateSaaSUI('Gratuit', 'Connexion', false);
+      btn.onclick = openLogin;
+      return;
+    }
+    const { data } = await supabaseClient
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    isPremium = (data?.status === 'active' || data?.status === 'trialing');
+    const name = session.user.email.split('@')[0];
+    updateSaaSUI(isPremium ? 'Creator' : 'Gratuit', name, isPremium);
+    btn.onclick = async () => {
+      await supabaseClient.auth.signOut();
+      toast('Déconnecté.');
+      checkUser();
+    };
+  } catch (e) {
+    console.warn('Erreur session Supabase :', e);
+  }
+}
+
+function updateSaaSUI(badgeText, btnText, premium) {
+  const badge = $('authStatus');
+  const btn = $('btnAuth');
+  const hint = $('planHint');
+  badge.textContent = badgeText;
+  badge.classList.toggle('premium', premium);
+  btn.innerHTML = `<i class="fa-solid ${premium ? 'fa-crown text-amber-300' : 'fa-user'}"></i> ${btnText}`;
+  if (hint) {
+    hint.textContent = premium
+      ? 'Mode Creator : export HD sans filigrane'
+      : 'Mode Gratuit : filigrane inclus';
+  }
+}
+
+if (supabaseClient) {
+  supabaseClient.auth.onAuthStateChange(() => checkUser());
+  checkUser();
+}
+
+// ==========================================
+// 2. NAVIGATION & NOTIFICATIONS
+// ==========================================
+function go(n) {
+  for (let i = 1; i <= 3; i++) {
+    $('s' + i).classList.toggle('hidden-s', i !== n);
+    $('tab' + i).classList.toggle('on', i === n);
+  }
+}
+
+function toast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = 't' + (type === 'err' ? ' err' : type === 'ok' ? ' ok' : '');
+  t.textContent = msg;
+  $('toast').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ==========================================
+// 3. SYNTHÈSE VOCALE (PREVIEW)
+// ==========================================
+let currentScript = [];
+let availableVoices = [];
+
+function loadVoices() {
+  if (!('speechSynthesis' in window)) return;
+  availableVoices = window.speechSynthesis.getVoices();
+  const lang = $('lang').value;
+  const sel = $('voiceSelect');
+  const filtered = availableVoices.filter(v => v.lang.toLowerCase().startsWith(lang));
+  const list = filtered.length ? filtered : availableVoices;
+  sel.innerHTML = list.map(v => `<option value="${v.name}">${v.name} (${v.lang})</option>`).join('');
+}
+
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+}
+
+function speakText(text) {
+  if (!('speechSynthesis' in window) || !$('ttsEnabled').checked || !text) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  const selectedName = $('voiceSelect').value;
+  const voice = availableVoices.find(v => v.name === selectedName);
+  if (voice) utt.voice = voice;
+  utt.rate = parseFloat($('ttsRate').value) || 0.85;
+  utt.pitch = parseFloat($('ttsPitch').value) || 0.90;
+  window.speechSynthesis.speak(utt);
+}
+
+function testVoice() {
+  const sample = $('lang').value === 'fr'
+    ? 'Bienvenue dans le studio Steel and Sound ASMR.'
+    : 'Welcome to Steel and Sound ASMR Studio.';
+  speakText(sample);
+}
+
+function readFullScript() {
+  if (!currentScript.length) { toast('Générez un script.', 'err'); return; }
+  speakText(currentScript.join(' ... '));
+}
+
+function generateScript() {
+  const topic = $('topic').value.trim() || 'ambiance sonore mécanique';
+  const lang = $('lang').value;
+  const dur = parseInt($('dur').value) || 10;
+
+  const sentences = lang === 'fr' ? [
+    `Bienvenue dans cette session ASMR dédiée à ${topic}.`,
+    `Fermez les yeux et laissez-vous porter par la précision des sons.`,
+    `Chaque détail compte, chaque texture métallique raconte une histoire.`,
+    `Le métal froid contraste avec la douceur de l'ambiance sonore.`,
+    `Prenez une grande inspiration, puis relâchez lentement.`,
+    `Les vibrations résonnent doucement dans l'espace.`,
+    `Nous explorons ensemble les moindres nuances acoustiques.`,
+    `Un dernier son, puis nous terminerons en douceur.`
+  ] : [
+    `Welcome to this ASMR session dedicated to ${topic}.`,
+    `Close your eyes and let the precision of the sounds guide you.`,
+    `Every detail matters, every metallic texture tells a story.`,
+    `The cold steel contrasts with the softness of the atmosphere.`,
+    `Take a deep breath, then release slowly.`,
+    `The vibrations resonate gently through the space.`,
+    `We explore every subtle acoustic nuance together.`,
+    `One final sound, and we will conclude softly.`
+  ];
+
+  const count = Math.min(sentences.length, Math.max(3, Math.ceil(dur / 5)));
+  currentScript = sentences.slice(0, count);
+
+  $('segs').innerHTML = currentScript.map((s, i) => `
+    <div class="seg-box p-3 rounded-lg border text-sm flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider">Segment ${i + 1}</span>
+        <button class="text-xs opacity-75 hover:opacity-100 hover:text-sky-400" onclick="speakText(currentScript[${i}])" title="Écouter ce segment"><i class="fa-solid fa-volume-low"></i> Écouter</button>
+      </div>
+      <textarea class="inp !text-xs" rows="2" onchange="currentScript[${i}]=this.value">${s}</textarea>
+    </div>
+  `).join('');
+
+  toast('Script généré avec succès !', 'ok');
+}
+
+// ==========================================
+// 4. VISUELS THÉMATIQUES & MOTEUR DE RENDU
+// ==========================================
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let audioCtx = null;
+let analyser = null;
+let freqData = null;
+let videoUrl = null;
+let lastAudioSettings = { type: 'white', duration: 10, density: 0.5 };
+
+const canvas = $('cv');
+const ctx = canvas.getContext('2d');
+canvas.width = 1280;
+canvas.height = 720;
+
+const raindrops = Array.from({ length: 90 }, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  len: 0.03 + Math.random() * 0.06,
+  speed: 0.35 + Math.random() * 0.65
+}));
+
+function drawGear(cx, cy, outerR, innerR, teeth, angle, color) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  for (let i = 0; i < teeth; i++) {
+    const a1 = (i / teeth) * Math.PI * 2;
+    const a2 = ((i + 0.35) / teeth) * Math.PI * 2;
+    const a3 = ((i + 0.5) / teeth) * Math.PI * 2;
+    const a4 = ((i + 0.85) / teeth) * Math.PI * 2;
+    ctx.lineTo(Math.cos(a1) * innerR, Math.sin(a1) * innerR);
+    ctx.lineTo(Math.cos(a2) * outerR, Math.sin(a2) * outerR);
+    ctx.lineTo(Math.cos(a3) * outerR, Math.sin(a3) * outerR);
+    ctx.lineTo(Math.cos(a4) * innerR, Math.sin(a4) * innerR);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, innerR * 0.45, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFrame(t, progress) {
+  const w = canvas.width;
+  const h = canvas.height;
+  const mood = $('mood').value;
+  const theme = $('visualTheme').value;
+  const density = parseInt($('density').value) / 100;
+
+  let c1, c2, accent;
+  if (mood === 'cold') { c1 = '#090f1d'; c2 = '#172e5c'; accent = 'rgba(56, 189, 248, 0.35)'; }
+  else if (mood === 'warm') { c1 = '#271003'; c2 = '#78350f'; accent = 'rgba(251, 191, 36, 0.35)'; }
+  else if (mood === 'emerald') { c1 = '#041f18'; c2 = '#065f46'; accent = 'rgba(52, 211, 153, 0.35)'; }
+  else { c1 = '#130f2e'; c2 = '#3b1c71'; accent = 'rgba(192, 132, 252, 0.35)'; }
+
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, c1);
+  grad.addColorStop(1, c2);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  if (theme === 'steel') {
+    const baseR = Math.min(w, h) * 0.22;
+    drawGear(w * 0.38, h * 0.48, baseR, baseR * 0.84, 16, t * 0.4, accent);
+    drawGear(w * 0.38 + baseR * 1.62, h * 0.48 - baseR * 0.45, baseR * 0.72, baseR * 0.58, 12, -t * 0.53 + 0.2, accent);
+    drawGear(w * 0.38 - baseR * 1.35, h * 0.48 + baseR * 0.65, baseR * 0.55, baseR * 0.42, 10, -t * 0.64, accent);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5);
+    ctx.moveTo(w * 0.5, 0); ctx.lineTo(w * 0.5, h);
+    ctx.stroke();
+  } else if (theme === 'rain') {
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1.5 + density * 1.5;
+    const count = Math.floor(25 + density * 65);
+    for (let i = 0; i < count; i++) {
+      const d = raindrops[i];
+      const rx = d.x * w;
+      const ry = ((d.y + t * d.speed) % 1) * h;
+      ctx.beginPath();
+      ctx.moveTo(rx, ry);
+      ctx.lineTo(rx - 8, ry + d.len * h);
+      ctx.stroke();
+    }
+    for (let j = 0; j < 4; j++) {
+      const rad = ((t * 80 + j * 120) % 480);
+      ctx.globalAlpha = Math.max(0, 0.25 - rad / 2000);
+      ctx.beginPath();
+      ctx.ellipse(w * 0.5, h * 0.78, rad * 1.8, rad * 0.4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  } else if (theme === 'waves') {
+    const bars = 64;
+    const barW = (w * 0.7) / bars;
+    const startX = w * 0.15;
+    if (analyser && freqData) analyser.getByteFrequencyData(freqData);
+    ctx.fillStyle = accent;
+    for (let i = 0; i < bars; i++) {
+      const val = freqData ? freqData[i % freqData.length] / 255 : (0.3 + 0.3 * Math.sin(t * 4 + i * 0.3));
+      const bh = Math.max(8, val * h * 0.45 * (0.5 + density));
+      const bx = startX + i * barW;
+      const by = (h - bh) / 2;
+      ctx.fillRect(bx, by, barW * 0.65, bh);
+    }
+  } else {
+    ctx.globalAlpha = 0.18;
+    for (let i = 0; i < 6; i++) {
+      const radius = (t * 55 + i * 95) % (Math.min(w, h) * 0.6);
+      ctx.beginPath();
+      ctx.arc(w / 2, h / 2, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2 + density * 3;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  if ($('showSubtitles').checked && currentScript.length > 0) {
+    const idx = Math.min(currentScript.length - 1, Math.floor(progress * currentScript.length));
+    const line = currentScript[idx];
+    const fs = Math.round(h * 0.036);
+    ctx.font = `500 ${fs}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(11, 15, 23, 0.65)';
+    const boxW = Math.min(w * 0.84, ctx.measureText(line).width + 48);
+    ctx.fillRect((w - boxW) / 2, h - fs * 2.8, boxW, fs * 1.7);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillText(line, w / 2, h - fs * 1.65);
+  }
+
+  if (!isPremium) {
+    const wfs = Math.max(14, Math.round(h * 0.025));
+    ctx.font = `700 ${wfs}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.fillText('STEEL & SOUND · Version Gratuite', w - 24, 38);
+  }
+}
+
+async function setupAudioGraph() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+  const type = $('soundType').value;
+  const density = parseInt($('density').value) / 100;
+  const dest = audioCtx.createMediaStreamDestination();
+
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 128;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+
+  const masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.28;
+  masterGain.connect(analyser);
+  analyser.connect(audioCtx.destination); // Pour entendre pendant le rendu
+  analyser.connect(dest); // Pour l'enregistrement
+
+  if (type === 'white') {
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer; source.loop = true;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 900 + density * 3800;
+    source.connect(filter); filter.connect(masterGain); source.start();
+  } else if (type === 'brown') {
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let lastOut = 0.0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      data[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = data[i]; data[i] *= 3.5;
+    }
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer; source.loop = true;
+    source.connect(masterGain); source.start();
+  } else if (type === 'binaural') {
+    const osc1 = audioCtx.createOscillator();
+    const osc2 = audioCtx.createOscillator();
+    osc1.frequency.value = 180;
+    osc2.frequency.value = 184;
+    const merger = audioCtx.createChannelMerger(2);
+    osc1.connect(merger, 0, 0);
+    osc2.connect(merger, 0, 1);
+    merger.connect(masterGain);
+    osc1.start(); osc2.start();
+  }
+
+  return dest.stream;
+}
+
+async function renderVideo() {
+  if (isRecording) return;
+  isRecording = true;
+  recordedChunks = [];
+
+  const resH = parseInt($('exportRes').value) || 720;
+  canvas.height = resH;
+  canvas.width = Math.round(resH * 16 / 9);
+  const bitrate = parseInt($('exportBitrate').value) || 6000000;
+  const durationSec = parseInt($('dur').value) || 10;
+  lastAudioSettings = { type: $('soundType').value, duration: durationSec, density: parseInt($('density').value) / 100 };
+
+  $('btnRender').disabled = true;
+  $('btnCancel').classList.remove('hidden-s');
+  $('rStatus').textContent = `Rendu ${canvas.width}×${canvas.height} en cours...`;
+  $('rStatus').style.color = '#38bdf8';
+
+  try {
+    // 1. On prépare l'audio
+    const audioStream = await setupAudioGraph();
+    
+    // 2. On capture le canvas
+    const canvasStream = canvas.captureStream(30);
+    
+    // 3. On combine les deux
+    const combinedStream = new MediaStream([
+      ...canvasStream.getVideoTracks(),
+      ...audioStream.getAudioTracks()
+    ]);
+
+    // 4. Détection du meilleur format (MP4 / WebM)
+    let mime = 'video/webm';
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) mime = 'video/webm;codecs=vp9,opus';
+    else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) mime = 'video/webm;codecs=vp8,opus';
+    else if (MediaRecorder.isTypeSupported('video/mp4')) mime = 'video/mp4';
+
+    mediaRecorder = new MediaRecorder(combinedStream, { mimeType: mime, videoBitsPerSecond: bitrate });
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+    mediaRecorder.onstop = () => {
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
+      const blob = new Blob(recordedChunks, { type: mime });
+      videoUrl = URL.createObjectURL(blob);
+      $('player').src = videoUrl;
+      $('videoContainer').classList.remove('hidden-s');
+      $('noVideoMsg').classList.add('hidden-s');
+      $('btnRender').disabled = false;
+      $('btnCancel').classList.add('hidden-s');
+      $('rStatus').textContent = `Rendu terminé (${(blob.size / 1048576).toFixed(1)} Mo) !`;
+      $('rStatus').style.color = '#34d399';
+      isRecording = false;
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      toast('Vidéo HD générée avec succès !', 'ok');
+    };
+
+    // 5. Lancement
+    mediaRecorder.start();
+    
+    // Petit délai pour que l'audio et la vidéo soient bien synchro
+    await new Promise(r => setTimeout(r, 200)); 
+
+    if ($('ttsEnabled').checked && currentScript.length > 0) {
+      readFullScript();
+    }
+
+    const durationMs = durationSec * 1000;
+    const startTime = performance.now();
+
+    const animate = (now) => {
+      if (!isRecording) return;
+      const elapsed = now - startTime;
+      const t = elapsed / 1000;
+      const progress = Math.min(1, elapsed / durationMs);
+
+      if (elapsed >= durationMs) {
+        mediaRecorder.stop();
+        if (audioCtx) { audioCtx.close(); audioCtx = null; }
+        return;
+      }
+
+      drawFrame(t, progress);
+
+      const pct = Math.round(progress * 100);
+      $('rBar').style.width = pct + '%';
+      $('rPct').textContent = pct + '%';
+
+      requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+
+  } catch (err) {
+    console.error(err);
+    $('rStatus').textContent = 'Erreur : ' + err.message;
+    $('rStatus').style.color = '#f87171';
+    cancelRender();
+  }
+}
+
+function cancelRender() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  isRecording = false;
+  $('btnRender').disabled = false;
+  $('btnCancel').classList.add('hidden-s');
+  $('rStatus').textContent = 'Rendu annulé.';
+  $('rStatus').style.color = '#94a3b8';
+}
+
+// ==========================================
+// 5. EXPORT & VALIDATION
+// ==========================================
+function approve() {
+  if (!videoUrl) { toast('Générez d\'abord la vidéo.', 'err'); return; }
+  toast('Vidéo validée ! Prête pour le téléchargement.', 'ok');
+}
+
+function dlVideo() {
+  if (!videoUrl) { toast('Aucune vidéo à télécharger.', 'err'); return; }
+  const a = document.createElement('a');
+  a.href = videoUrl;
+  a.download = `steel_sound_asmr_${$('exportRes').value}p.webm`;
+  a.click();
+}
+
+function dlWav() {
+  const sampleRate = 44100;
+  const duration = lastAudioSettings.duration || 10;
+  const type = lastAudioSettings.type || 'white';
+  const numSamples = sampleRate * duration;
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+
+  const writeString = (offset, string) => {
+    for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+  };
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  let lastOut = 0;
+  for (let i = 0; i < numSamples; i++) {
+    let sample = 0;
+    if (type === 'brown') {
+      const white = Math.random() * 2 - 1;
+      lastOut = (lastOut + (0.02 * white)) / 1.02;
+      sample = lastOut * 2.5;
+    } else if (type === 'binaural') {
+      const t = i / sampleRate;
+      sample = 0.4 * (Math.sin(2 * Math.PI * 180 * t) + Math.sin(2 * Math.PI * 184 * t));
+    } else {
+      sample = (Math.random() * 2 - 1) * 0.5;
+    }
+    sample = Math.max(-1, Math.min(1, sample));
+    view.setInt16(44 + i * 2, sample * 32767, true);
+  }
+
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `steel_sound_asmr_${type}.wav`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Fichier audio WAV généré !', 'ok');
+}
+
+// Dessin initial
+drawFrame(0, 0);
+</script>
+</body>
+</html>
