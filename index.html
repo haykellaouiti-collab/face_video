@@ -3,16 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Steel &amp; Sound ASMR - Studio Pro SaaS</title>
+  <title>FaceVideo - Studio ASMR Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: {} }
-    }
+    tailwind.config = { darkMode: 'class', theme: { extend: {} } }
   </script>
   <style>
     body { font-family: 'Inter', sans-serif; overflow-x: hidden; transition: background .3s, color .3s; }
@@ -60,9 +57,9 @@
 <header class="border-b sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-4 min-h-16 py-2 flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-300 via-slate-500 to-slate-700 flex items-center justify-center text-slate-950 text-lg"><i class="fa-solid fa-compact-disc"></i></div>
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-300 via-slate-500 to-slate-700 flex items-center justify-center text-slate-950 text-lg"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
       <div>
-        <h1 class="text-base font-bold leading-tight">STEEL &amp; SOUND</h1>
+        <h1 class="text-base font-bold leading-tight">FaceVideo</h1>
         <p class="text-[11px] opacity-75">Studio ASMR Pro · TTS &amp; Rendu Local</p>
       </div>
     </div>
@@ -101,7 +98,7 @@
           </label>
         </div>
         <div>
-          <label class="lbl">Sélection de la voix</label>
+          <label class="lbl">Sélection de la voix (TTS du navigateur)</label>
           <select id="voiceSelect" class="inp"></select>
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -109,7 +106,6 @@
           <div><label class="lbl">Hauteur : <span id="pitchVal">0.90</span></label><input id="ttsPitch" type="range" min="0.5" max="1.5" step="0.05" value="0.90" class="w-full" oninput="$('pitchVal').textContent=this.value"></div>
         </div>
         <button class="btn b-soft w-full !py-1.5 !text-xs" onclick="testVoice()"><i class="fa-solid fa-volume-high text-sky-400"></i> Tester la voix (Preview)</button>
-        <p class="text-[10px] text-amber-500/80 text-center mt-1"><i class="fa-solid fa-circle-info"></i> La voix n'est pas enregistrée dans la vidéo, seulement le son ASMR.</p>
       </div>
 
       <button class="btn b-main" onclick="generateScript()"><i class="fa-solid fa-wand-magic-sparkles"></i> Générer le script</button>
@@ -132,7 +128,7 @@
     <div class="lg:col-span-8 card flex flex-col gap-3 border">
       <div class="flex items-center justify-between border-b pb-2">
         <h2 class="text-sm font-semibold"><i class="fa-solid fa-display text-amber-400"></i> Rendu vidéo HD</h2>
-        <span id="planHint" class="text-[11px] opacity-75">Mode Gratuit : filigrane discret inclus</span>
+        <span id="planHint" class="text-[11px] opacity-75">Mode Gratuit : filigrane inclus</span>
       </div>
       <div class="relative bg-black rounded-xl flex items-center justify-center min-h-[300px] overflow-hidden p-2 border border-slate-800">
         <canvas id="cv" class="max-w-full max-h-[430px] rounded"></canvas>
@@ -152,9 +148,15 @@
       <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-sliders text-emerald-400"></i> Réglages Studio</h2>
 
       <div>
-        <label class="lbl">Animation visuelle thématique</label>
+        <label class="lbl text-amber-400 font-bold"><i class="fa-solid fa-file-audio"></i> 1. Importer votre Voix Off (MP3/WAV)</label>
+        <input type="file" id="voiceoverFile" accept="audio/*" class="inp !py-2 text-xs" onchange="handleVoiceoverUpload(this)">
+        <p class="text-[10px] text-slate-400 mt-1">Ajoutez votre voix générée (ex: ElevenLabs) pour la mixer avec le son ASMR.</p>
+      </div>
+
+      <div class="border-t pt-2">
+        <label class="lbl">2. Animation visuelle thématique</label>
         <select id="visualTheme" class="inp">
-          <option value="steel">Mécanique &amp; Engrenages (Steel)</option>
+          <option value="particles" selected>Particules &amp; Lumières (Cinéma)</option>
           <option value="rain">Pluie &amp; Ondes sur vitre</option>
           <option value="waves">Spectre Audio / Fréquences ASMR</option>
           <option value="circles">Cercles concentriques zen</option>
@@ -172,7 +174,7 @@
       </div>
 
       <div>
-        <label class="lbl">Nappe sonore générative (Enregistrée)</label>
+        <label class="lbl">Nappe sonore ASMR (Bruit de fond)</label>
         <select id="soundType" class="inp">
           <option value="white">Bruit blanc filtré (pluie douce)</option>
           <option value="brown">Bruit brun profond (feu / grondement)</option>
@@ -189,11 +191,10 @@
           </select>
         </div>
         <div>
-          <label class="lbl">Débit vidéo</label>
-          <select id="exportBitrate" class="inp">
-            <option value="3000000">Standard (3 Mbps)</option>
-            <option value="6000000" selected>Élevé (6 Mbps)</option>
-            <option value="10000000">Master (10 Mbps)</option>
+          <label class="lbl">Format de sortie</label>
+          <select id="exportFormat" class="inp">
+            <option value="webm" selected>.webm (Recommandé)</option>
+            <option value="mp4">.mp4 (si supporté)</option>
           </select>
         </div>
       </div>
@@ -225,8 +226,8 @@
     </div>
     <div class="lg:col-span-5 card space-y-3 border">
       <h2 class="text-sm font-semibold border-b pb-2"><i class="fa-solid fa-file-export text-sky-400"></i> Téléchargements</h2>
-      <p class="text-xs opacity-75">Exportez le montage vidéo complet avec piste sonore générative.</p>
-      <button id="dlVid" class="btn b-main w-full" onclick="dlVideo()"><i class="fa-solid fa-video"></i> Télécharger Vidéo (.webm)</button>
+      <p class="text-xs opacity-75">Exportez le montage vidéo complet avec la voix off et le son ASMR mixés.</p>
+      <button id="dlVid" class="btn b-main w-full" onclick="dlVideo()"><i class="fa-solid fa-video"></i> Télécharger Vidéo</button>
       <button id="dlWav" class="btn b-soft w-full" onclick="dlWav()"><i class="fa-solid fa-music text-pink-400"></i> Télécharger Audio (.wav)</button>
     </div>
   </section>
@@ -400,8 +401,8 @@ function speakText(text) {
 
 function testVoice() {
   const sample = $('lang').value === 'fr'
-    ? 'Bienvenue dans le studio Steel and Sound ASMR.'
-    : 'Welcome to Steel and Sound ASMR Studio.';
+    ? 'Bienvenue dans le studio FaceVideo ASMR.'
+    : 'Welcome to FaceVideo ASMR Studio.';
   speakText(sample);
 }
 
@@ -461,43 +462,42 @@ let audioCtx = null;
 let analyser = null;
 let freqData = null;
 let videoUrl = null;
+let currentMime = '';
 let lastAudioSettings = { type: 'white', duration: 10, density: 0.5 };
+let voiceoverBuffer = null; // Pour stocker le fichier audio uploadé
 
 const canvas = $('cv');
 const ctx = canvas.getContext('2d');
 canvas.width = 1280;
 canvas.height = 720;
 
-const raindrops = Array.from({ length: 90 }, () => ({
+// Particules pour l'effet Cinéma
+const particles = Array.from({ length: 150 }, () => ({
   x: Math.random(),
   y: Math.random(),
-  len: 0.03 + Math.random() * 0.06,
-  speed: 0.35 + Math.random() * 0.65
+  size: Math.random() * 2.5 + 0.5,
+  speedX: (Math.random() - 0.5) * 0.0008,
+  speedY: (Math.random() - 0.5) * 0.0008,
+  alpha: Math.random() * 0.5 + 0.1
 }));
 
-function drawGear(cx, cy, outerR, innerR, teeth, angle, color) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(angle);
-  ctx.beginPath();
-  for (let i = 0; i < teeth; i++) {
-    const a1 = (i / teeth) * Math.PI * 2;
-    const a2 = ((i + 0.35) / teeth) * Math.PI * 2;
-    const a3 = ((i + 0.5) / teeth) * Math.PI * 2;
-    const a4 = ((i + 0.85) / teeth) * Math.PI * 2;
-    ctx.lineTo(Math.cos(a1) * innerR, Math.sin(a1) * innerR);
-    ctx.lineTo(Math.cos(a2) * outerR, Math.sin(a2) * outerR);
-    ctx.lineTo(Math.cos(a3) * outerR, Math.sin(a3) * outerR);
-    ctx.lineTo(Math.cos(a4) * innerR, Math.sin(a4) * innerR);
+// Gestion de l'upload de la voix
+async function handleVoiceoverUpload(input) {
+  const file = input.files[0];
+  if (!file) {
+    voiceoverBuffer = null;
+    toast('Voix off retirée.', 'info');
+    return;
   }
-  ctx.closePath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(0, 0, innerR * 0.45, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    voiceoverBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    toast('Voix off chargée avec succès !', 'ok');
+  } catch (err) {
+    console.error(err);
+    toast('Erreur lors du chargement de l\'audio.', 'err');
+  }
 }
 
 function drawFrame(t, progress) {
@@ -508,10 +508,10 @@ function drawFrame(t, progress) {
   const density = parseInt($('density').value) / 100;
 
   let c1, c2, accent;
-  if (mood === 'cold') { c1 = '#090f1d'; c2 = '#172e5c'; accent = 'rgba(56, 189, 248, 0.35)'; }
-  else if (mood === 'warm') { c1 = '#271003'; c2 = '#78350f'; accent = 'rgba(251, 191, 36, 0.35)'; }
-  else if (mood === 'emerald') { c1 = '#041f18'; c2 = '#065f46'; accent = 'rgba(52, 211, 153, 0.35)'; }
-  else { c1 = '#130f2e'; c2 = '#3b1c71'; accent = 'rgba(192, 132, 252, 0.35)'; }
+  if (mood === 'cold') { c1 = '#090f1d'; c2 = '#172e5c'; accent = 'rgba(56, 189, 248, 0.8)'; }
+  else if (mood === 'warm') { c1 = '#271003'; c2 = '#78350f'; accent = 'rgba(251, 191, 36, 0.8)'; }
+  else if (mood === 'emerald') { c1 = '#041f18'; c2 = '#065f46'; accent = 'rgba(52, 211, 153, 0.8)'; }
+  else { c1 = '#130f2e'; c2 = '#3b1c71'; accent = 'rgba(192, 132, 252, 0.8)'; }
 
   const grad = ctx.createLinearGradient(0, 0, w, h);
   grad.addColorStop(0, c1);
@@ -519,64 +519,35 @@ function drawFrame(t, progress) {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 
-  if (theme === 'steel') {
-    const baseR = Math.min(w, h) * 0.22;
-    drawGear(w * 0.38, h * 0.48, baseR, baseR * 0.84, 16, t * 0.4, accent);
-    drawGear(w * 0.38 + baseR * 1.62, h * 0.48 - baseR * 0.45, baseR * 0.72, baseR * 0.58, 12, -t * 0.53 + 0.2, accent);
-    drawGear(w * 0.38 - baseR * 1.35, h * 0.48 + baseR * 0.65, baseR * 0.55, baseR * 0.42, 10, -t * 0.64, accent);
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5);
-    ctx.moveTo(w * 0.5, 0); ctx.lineTo(w * 0.5, h);
-    ctx.stroke();
-  } else if (theme === 'rain') {
+  // Effet Cinéma : Particules et Lumières
+  ctx.globalCompositeOperation = 'screen';
+  if (theme === 'particles') {
+    particles.forEach(p => {
+      p.x += p.speedX * 1000;
+      p.y += p.speedY * 1000;
+      if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+      if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+
+      ctx.beginPath();
+      ctx.arc(p.x * w, p.y * h, p.size + (density * 2), 0, Math.PI * 2);
+      ctx.fillStyle = accent.replace('0.8', p.alpha.toFixed(2));
+      ctx.fill();
+    });
+    
+    // Halo lumineux au centre
+    const radGrad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w*0.6);
+    radGrad.addColorStop(0, accent.replace('0.8', '0.15'));
+    radGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = radGrad;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    // Anciens effets (fallback)
     ctx.strokeStyle = accent;
     ctx.lineWidth = 1.5 + density * 1.5;
-    const count = Math.floor(25 + density * 65);
-    for (let i = 0; i < count; i++) {
-      const d = raindrops[i];
-      const rx = d.x * w;
-      const ry = ((d.y + t * d.speed) % 1) * h;
-      ctx.beginPath();
-      ctx.moveTo(rx, ry);
-      ctx.lineTo(rx - 8, ry + d.len * h);
-      ctx.stroke();
-    }
-    for (let j = 0; j < 4; j++) {
-      const rad = ((t * 80 + j * 120) % 480);
-      ctx.globalAlpha = Math.max(0, 0.25 - rad / 2000);
-      ctx.beginPath();
-      ctx.ellipse(w * 0.5, h * 0.78, rad * 1.8, rad * 0.4, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  } else if (theme === 'waves') {
-    const bars = 64;
-    const barW = (w * 0.7) / bars;
-    const startX = w * 0.15;
-    if (analyser && freqData) analyser.getByteFrequencyData(freqData);
-    ctx.fillStyle = accent;
-    for (let i = 0; i < bars; i++) {
-      const val = freqData ? freqData[i % freqData.length] / 255 : (0.3 + 0.3 * Math.sin(t * 4 + i * 0.3));
-      const bh = Math.max(8, val * h * 0.45 * (0.5 + density));
-      const bx = startX + i * barW;
-      const by = (h - bh) / 2;
-      ctx.fillRect(bx, by, barW * 0.65, bh);
-    }
-  } else {
-    ctx.globalAlpha = 0.18;
-    for (let i = 0; i < 6; i++) {
-      const radius = (t * 55 + i * 95) % (Math.min(w, h) * 0.6);
-      ctx.beginPath();
-      ctx.arc(w / 2, h / 2, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2 + density * 3;
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
   }
+  ctx.globalCompositeOperation = 'source-over';
 
+  // Sous-titres
   if ($('showSubtitles').checked && currentScript.length > 0) {
     const idx = Math.min(currentScript.length - 1, Math.floor(progress * currentScript.length));
     const line = currentScript[idx];
@@ -590,17 +561,18 @@ function drawFrame(t, progress) {
     ctx.fillText(line, w / 2, h - fs * 1.65);
   }
 
+  // Filigrane
   if (!isPremium) {
     const wfs = Math.max(14, Math.round(h * 0.025));
     ctx.font = `700 ${wfs}px Inter, system-ui, sans-serif`;
     ctx.textAlign = 'right';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-    ctx.fillText('STEEL & SOUND · Version Gratuite', w - 24, 38);
+    ctx.fillText('FACEVIDEO · Version Gratuite', w - 24, 38);
   }
 }
 
 async function setupAudioGraph() {
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') await audioCtx.resume();
 
   const type = $('soundType').value;
@@ -612,10 +584,12 @@ async function setupAudioGraph() {
   freqData = new Uint8Array(analyser.frequencyBinCount);
 
   const masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.28;
-  masterGain.connect(analyser);
-  analyser.connect(audioCtx.destination); // Pour entendre pendant le rendu
-  analyser.connect(dest); // Pour l'enregistrement
+  masterGain.gain.value = 1.0; // Volume global
+  
+  // 1. Connexion du bruit de fond ASMR
+  const bgGain = audioCtx.createGain();
+  bgGain.gain.value = 0.28;
+  bgGain.connect(masterGain);
 
   if (type === 'white') {
     const bufferSize = 2 * audioCtx.sampleRate;
@@ -626,7 +600,7 @@ async function setupAudioGraph() {
     source.buffer = buffer; source.loop = true;
     const filter = audioCtx.createBiquadFilter();
     filter.type = 'lowpass'; filter.frequency.value = 900 + density * 3800;
-    source.connect(filter); filter.connect(masterGain); source.start();
+    source.connect(filter); filter.connect(bgGain); source.start();
   } else if (type === 'brown') {
     const bufferSize = 2 * audioCtx.sampleRate;
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -639,7 +613,7 @@ async function setupAudioGraph() {
     }
     const source = audioCtx.createBufferSource();
     source.buffer = buffer; source.loop = true;
-    source.connect(masterGain); source.start();
+    source.connect(bgGain); source.start();
   } else if (type === 'binaural') {
     const osc1 = audioCtx.createOscillator();
     const osc2 = audioCtx.createOscillator();
@@ -648,9 +622,24 @@ async function setupAudioGraph() {
     const merger = audioCtx.createChannelMerger(2);
     osc1.connect(merger, 0, 0);
     osc2.connect(merger, 0, 1);
-    merger.connect(masterGain);
+    merger.connect(bgGain);
     osc1.start(); osc2.start();
   }
+
+  // 2. Connexion de la Voix Off (si uploadée)
+  if (voiceoverBuffer) {
+    const voiceSource = audioCtx.createBufferSource();
+    voiceSource.buffer = voiceoverBuffer;
+    const voiceGain = audioCtx.createGain();
+    voiceGain.gain.value = 1.5; // On booste un peu la voix
+    voiceSource.connect(voiceGain);
+    voiceGain.connect(masterGain);
+    voiceSource.start();
+  }
+
+  masterGain.connect(analyser);
+  analyser.connect(audioCtx.destination); // Retour casque
+  analyser.connect(dest); // Pour l'enregistrement
 
   return dest.stream;
 }
@@ -663,7 +652,7 @@ async function renderVideo() {
   const resH = parseInt($('exportRes').value) || 720;
   canvas.height = resH;
   canvas.width = Math.round(resH * 16 / 9);
-  const bitrate = parseInt($('exportBitrate').value) || 6000000;
+  const bitrate = 8000000;
   const durationSec = parseInt($('dur').value) || 10;
   lastAudioSettings = { type: $('soundType').value, duration: durationSec, density: parseInt($('density').value) / 100 };
 
@@ -673,30 +662,33 @@ async function renderVideo() {
   $('rStatus').style.color = '#38bdf8';
 
   try {
-    // 1. On prépare l'audio
     const audioStream = await setupAudioGraph();
-    
-    // 2. On capture le canvas
     const canvasStream = canvas.captureStream(30);
-    
-    // 3. On combine les deux
     const combinedStream = new MediaStream([
       ...canvasStream.getVideoTracks(),
       ...audioStream.getAudioTracks()
     ]);
 
-    // 4. Détection du meilleur format (MP4 / WebM)
     let mime = 'video/webm';
-    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) mime = 'video/webm;codecs=vp9,opus';
-    else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) mime = 'video/webm;codecs=vp8,opus';
-    else if (MediaRecorder.isTypeSupported('video/mp4')) mime = 'video/mp4';
+    const prefFormat = $('exportFormat').value;
+    
+    if (prefFormat === 'mp4' && MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a')) {
+      mime = 'video/mp4;codecs=avc1,mp4a';
+    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+      mime = 'video/webm;codecs=vp9,opus';
+    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+      mime = 'video/webm;codecs=vp8,opus';
+    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+      mime = 'video/mp4';
+    }
+    currentMime = mime;
 
     mediaRecorder = new MediaRecorder(combinedStream, { mimeType: mime, videoBitsPerSecond: bitrate });
     mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
 
     mediaRecorder.onstop = () => {
       if (videoUrl) URL.revokeObjectURL(videoUrl);
-      const blob = new Blob(recordedChunks, { type: mime });
+      const blob = new Blob(recordedChunks, { type: mime.split(';')[0] });
       videoUrl = URL.createObjectURL(blob);
       $('player').src = videoUrl;
       $('videoContainer').classList.remove('hidden-s');
@@ -710,10 +702,7 @@ async function renderVideo() {
       toast('Vidéo HD générée avec succès !', 'ok');
     };
 
-    // 5. Lancement
     mediaRecorder.start();
-    
-    // Petit délai pour que l'audio et la vidéo soient bien synchro
     await new Promise(r => setTimeout(r, 200)); 
 
     if ($('ttsEnabled').checked && currentScript.length > 0) {
@@ -764,9 +753,6 @@ function cancelRender() {
   $('rStatus').style.color = '#94a3b8';
 }
 
-// ==========================================
-// 5. EXPORT & VALIDATION
-// ==========================================
 function approve() {
   if (!videoUrl) { toast('Générez d\'abord la vidéo.', 'err'); return; }
   toast('Vidéo validée ! Prête pour le téléchargement.', 'ok');
@@ -774,13 +760,15 @@ function approve() {
 
 function dlVideo() {
   if (!videoUrl) { toast('Aucune vidéo à télécharger.', 'err'); return; }
+  const ext = currentMime.includes('mp4') ? 'mp4' : 'webm';
   const a = document.createElement('a');
   a.href = videoUrl;
-  a.download = `steel_sound_asmr_${$('exportRes').value}p.webm`;
+  a.download = `facevideo_asmr_${$('exportRes').value}p.${ext}`;
   a.click();
 }
 
 function dlWav() {
+  // Fonction WAV simplifiée pour le bruit de fond
   const sampleRate = 44100;
   const duration = lastAudioSettings.duration || 10;
   const type = lastAudioSettings.type || 'white';
@@ -792,18 +780,12 @@ function dlWav() {
     for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
   };
 
-  writeString(0, 'RIFF');
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, 'data');
+  writeString(0, 'RIFF'); view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, 'WAVE'); writeString(12, 'fmt ');
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true); writeString(36, 'data');
   view.setUint32(40, numSamples * 2, true);
 
   let lastOut = 0;
@@ -827,13 +809,12 @@ function dlWav() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `steel_sound_asmr_${type}.wav`;
+  a.download = `facevideo_asmr_${type}.wav`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
   toast('Fichier audio WAV généré !', 'ok');
 }
 
-// Dessin initial
 drawFrame(0, 0);
 </script>
 </body>
